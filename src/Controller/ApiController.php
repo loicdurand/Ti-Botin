@@ -27,6 +27,6 @@ class ApiController extends AbstractController
             ];
         }
 
-        return $this->json(['data' => $output]);
+        return $this->json($output);
     }
 }

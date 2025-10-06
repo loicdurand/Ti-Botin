@@ -21,7 +21,9 @@ async function fetchAdresses(): Promise<Adresse[]> {
 
 async function chargement_de_la_carte() {
 
-  let deptCode = '971';
+  const deptCode = '971';
+
+  const adresses = await fetchAdresses();
 
   // Initialiser la carte centrée sur la France par défaut
   const map = L.map('map').setView([16.25, -61.56], 10);  // Centre approx. France, zoom national
@@ -34,11 +36,9 @@ async function chargement_de_la_carte() {
   // URL du GeoJSON des départements (tous inclus, simplifié)
   const geoJsonUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson';
 
-  // Group pour les points (optionnel, pour les toggler si besoin)
+  // Group pour les points
   const pointsLayer = L.layerGroup().addTo(map);
-
-  const adresses = await fetchAdresses();
-
+  console.log({ adresses });
   if (adresses.length) {
     adresses.forEach(point => {
       const marker = L.marker([+point.lat, +point.lng], {
@@ -79,6 +79,7 @@ async function chargement_de_la_carte() {
 
       // Centrer et zoomer sur le département
       map.fitBounds(deptLayer.getBounds(), { padding: [20, 20] });
+
     })
     .catch(error => console.error('Erreur chargement GeoJSON:', error));
 

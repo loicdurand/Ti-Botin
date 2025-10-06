@@ -1,4 +1,20 @@
-#map {
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#carte-container {
     height: 500px;
+    /* Ou 100vh pour full écran */
+    width: 100%;
+    position: relative;
+    /* Optionnel, pour overlays */
+}
+
+/* Carte prend 100% de la div parent */
+#map {
+    height: 100%;
     width: 100%;
 }
