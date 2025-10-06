@@ -66,10 +66,10 @@ async function chargement_de_la_carte() {
       const deptLayer = L.geoJSON(deptFeature, {
         style: {
           color: '#ff0000',  // Bordure rouge
-          weight: 3,
-          opacity: 0.8,
-          fillColor: '#ffcccc',  // Remplissage rose clair
-          fillOpacity: 0.5
+          weight: 1,
+          opacity: 1,
+          fillColor: 'transparent',  // Remplissage rose clair
+          fillOpacity: 1
         },
         onEachFeature: (feature, layer) => {
           // Popup avec nom du département (optionnel)
@@ -78,8 +78,11 @@ async function chargement_de_la_carte() {
       }).addTo(map);
 
       // Centrer et zoomer sur le département
-      map.fitBounds(deptLayer.getBounds(), { padding: [20, 20] });
-
+      map.fitBounds(deptLayer.getBounds(), {
+        padding: [0, 0],
+        maxZoom: 10
+      });
+      map.setZoom(10);
     })
     .catch(error => console.error('Erreur chargement GeoJSON:', error));
 
