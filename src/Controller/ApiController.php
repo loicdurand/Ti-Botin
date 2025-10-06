@@ -15,8 +15,18 @@ class ApiController extends AbstractController
     #[Route('/api/adresses', name: 'export_api_unites')]
     public function api_adresses(EntityManagerInterface $manager)
     {
+        $output = [];
         $adresses = $manager->getRepository(Adresse::class)->findAll();
+        foreach ($adresses as $adr) {
+            $unites = $adr->getUnites();
+            $output[] = [
+                'id' => $adr->getId(),
+                'lat' => $adr->getLat(),
+                'lng' => $adr->getLng(),
+                'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
+            ];
+        }
 
-        return $this->json($adresses);
+        return $this->json(['data' => $output]);
     }
 }
