@@ -2,9 +2,16 @@ import nlp from 'compromise';
 import utils from './utils';
 
 type Words = { [key: string]: string }
+type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name';
 
 export default class Chat {
-    private orgs: string[] = [];
+    private aliasses: Record<Category, { commune: string, aliasses: string[] }[]> = {
+        Organization: [],
+        City: [],
+        Attribute: [],
+        FirstName: [],
+        Name: []
+    };
     private words: Words = {};
     private nlp = nlp;
 
@@ -14,11 +21,23 @@ export default class Chat {
 
     public addWords(
         values: string[] = [],
-        category: ('Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name')
+        category: Category
     ) {
-        if (category === 'Organization')
-            values.forEach(val => this.orgs.push(val));
+        // if (category === 'Organization')
+        //     values.forEach(val => this.orgs.push(val));
         values.forEach(val => this.words[val] = category);
+        return this;
+    }
+
+    public addAliasses(
+        values: ({
+            "commune": string,
+            "aliasses": string[]
+        })[] = [],
+        category: Category
+    ) {
+        this.aliasses[category] = [];
+        values.forEach(value => this.aliasses[category].push(value));
         return this;
     }
 
@@ -33,20 +52,21 @@ export default class Chat {
         const organizations = doc.organizations().out('array'); // Ex. : ['unité marketing']
         const cities = doc.places().out('array');
         const attributes = doc.match('#Attribute').out('array'); // Ex. : ['numéro', 'portable']
-        console.log({ organizations });
 
         // Logique pour déterminer le type et les termes
-        let type, term;
+        let type, term, city;
         if (people.length > 0) {
             type = 'person';
             term = people[0];
+            city = null;
         } else if (organizations.length > 0) {
-            //const re = new RegExp('(le|la|les|l|de|des|d)[\s-\']', 'gi');
             type = 'unite';
-            term = [organizations, cities].join(' ');//.replace(re, '').trim();
+            term = organizations[0];
+            city = this.replaceAlias(cities[0]);
         } else {
             type = 'unknown';
             term = null;
+            city = null;
         }
 
         // Mappe les attributs (ex. : "numéro portable" -> "telephone_portable")
@@ -62,6 +82,7 @@ export default class Chat {
         return {
             type,
             term,
+            city,
             mappedAttributes: mappedAttributes.join(' '),
             attributes: attributes.join(' '),
             message
@@ -83,6 +104,16 @@ export default class Chat {
             (q: string) => q.toLowerCase(),
             (q: string) => q.replace(/['-]/g, ' ')
         )(query);
+    }
+
+    private replaceAlias(city: string) {
+        const alias_exists = this.aliasses.City.find(({ commune, aliasses }) => {
+            return aliasses.includes(city.trim());
+        });
+
+        if (alias_exists === null || !alias_exists)
+            return city;
+        return alias_exists.commune;
     }
 }
 

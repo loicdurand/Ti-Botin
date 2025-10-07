@@ -34,6 +34,15 @@ class AdresseRepository extends ServiceEntityRepository
         return $results;
     }
 
+    public function getCommunesAlias()
+    {
+        return $this->createQueryBuilder('a')
+            ->select('a.commune, a.aliasses')
+            ->andWhere('a.aliasses IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Adresse[] Returns an array of Adresse objects
     //     */

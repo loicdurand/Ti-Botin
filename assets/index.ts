@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     .addWords([...chat_data.unites, 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
     .addWords(['numero', 'num', 'n°', 'telephone', 'tel', 'fixe', 'fix', 'portable', 'mobile', 'port', 'email', 'courriel', 'e-mail', 'mail', 'adresse'], 'Attribute')
     .addWords(chat_data.prenoms, 'FirstName')
-    .addWords(chat_data.noms, 'Name');
+    .addWords(chat_data.noms, 'Name')
+    .addAliasses(chat_data.communes_alias, "City");
 
   // Prompt send
   document.getElementById('send-btn')?.addEventListener('click', async () => {
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     messages.forEach(message => {
       const result = chat.analyzeMessage(message);
-      console.log(result);
+      console.log(result); // communes_alias
     });
 
     return false;

@@ -17,7 +17,7 @@ class User
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $fonction = null;
 
-    #[ORM\Column(length: 8, nullable: true)]
+    #[ORM\Column(length: 30, nullable: true)]
     private ?string $grade = null;
 
     #[ORM\Column(length: 50)]

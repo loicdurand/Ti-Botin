@@ -56,13 +56,16 @@ class ApiController extends AbstractController
     public function api_chatdata(EntityManagerInterface $manager): Response
     {
         $UserRepo = $manager->getRepository(User::class);
+        $adrRepo = $manager->getRepository(Adresse::class);
         $results = [
             'prenoms' => $UserRepo->getDistinctPrenoms(),
             'noms' => $UserRepo->getDistinctNoms(),
             'unites' => $manager->getRepository(Unite::class)->getDistinctUnitesTypes(),
-            'communes' => $manager->getRepository(Adresse::class)->getDistinctCommunes()
+            'communes' => $adrRepo->getDistinctCommunes(),
+            'communes_alias'  => $adrRepo->getCommunesAlias(),
 
         ];
+        dd($results['communes_alias']);
         return $this->json($results);
     }
 }
