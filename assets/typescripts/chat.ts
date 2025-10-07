@@ -93,6 +93,11 @@ export default class Chat {
     private extends(): Chat {
 
         this.nlp.extend({
+            tags: {
+                Name: {
+                    isA: 'Person', // Hérite de Person pour être détecté par doc.people()
+                }
+            },
             words: this.words,
         });
 
