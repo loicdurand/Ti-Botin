@@ -5,7 +5,7 @@ type Words = { [key: string]: string }
 type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name';
 
 export default class Chat {
-    private aliasses: Record<Category, { commune: string, aliasses: string[] }[]> = {
+    private aliasses: Record<Category, { value: string, aliasses: string[] }[]> = {
         Organization: [],
         City: [],
         Attribute: [],
@@ -31,7 +31,7 @@ export default class Chat {
 
     public addAliasses(
         values: ({
-            "commune": string,
+            "value": string,
             "aliasses": string[]
         })[] = [],
         category: Category
@@ -46,6 +46,8 @@ export default class Chat {
         this.extends();
 
         const message = this.sanitize(query);
+        console.log(message);
+
         const doc = this.nlp(message);
 
         // Détection des entités
@@ -56,14 +58,14 @@ export default class Chat {
 
         // Logique pour déterminer le type et les termes
         let type, term, city;
-        if (people.length > 0) {
+        if (organizations.length > 0) {
+            type = 'unite';
+            term = this.replaceAlias(organizations.join(' '), 'Organization');
+            city = this.replaceAlias(cities.join(' '), 'City');
+        } else if (people.length > 0) {
             type = 'person';
             term = people.join(' ');
             city = null;
-        } else if (organizations.length > 0) {
-            type = 'unite';
-            term = organizations.join(' ');
-            city = this.replaceAlias(cities.join(' '));
         } else {
             type = 'unknown';
             term = null;
@@ -86,7 +88,7 @@ export default class Chat {
             city,
             // mappedAttributes: mappedAttributes.join(' '),
             attributes: attributes.join(' '),
-            message
+            // message
         };
     }
 
@@ -108,24 +110,24 @@ export default class Chat {
         return utils.pipe(
             // utils.string.sansAccent,
             // (q: string) => q.toLowerCase(),
-            // (q: string) => q.replace(/['-]/g, ' ')
+            (q: string) => q.replaceAll("'", ' '),
             (q: string) => q.replaceAll(/[\?\.]?$/g, '')
         )(query);
     }
 
-    private replaceAlias(city: string) {
+    private replaceAlias(org: string, category: Category) {
 
-        if (!city || city === null)
+        if (!org || org === null)
             return null;
 
-        const alias_exists = this.aliasses.City.find(({ commune, aliasses }) => {
-            return aliasses.includes(city.trim());
+        const alias_exists = this.aliasses[category].find(({ aliasses }) => {
+            return aliasses.includes(org.trim());
         });
 
         if (alias_exists === null || !alias_exists)
-            return city;
+            return org;
 
-        return alias_exists.commune;
+        return alias_exists.value;
     }
 }
 

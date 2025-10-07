@@ -37,7 +37,7 @@ class AdresseRepository extends ServiceEntityRepository
     public function getCommunesAlias()
     {
         return $this->createQueryBuilder('a')
-            ->select('a.commune, a.aliasses')
+            ->select('a.commune as value, a.aliasses')
             ->andWhere('a.aliasses IS NOT NULL')
             ->getQuery()
             ->getResult();
