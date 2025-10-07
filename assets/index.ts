@@ -1,4 +1,5 @@
 import chargement_de_la_carte from "./typescripts/chargement_carte";
+import analyzeMessage from "./typescripts/chat";
 
 let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
@@ -59,11 +60,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Prompt send
   document.getElementById('send-btn')?.addEventListener('click', async () => {
-    const input = document.getElementById('prompt-input') as HTMLInputElement;
-    const query = input.value.trim();
-    if (!query) return;
 
-    console.log({ query });
+    const messages = [
+      "tel port de Loïc",
+      "tel de Loïc",
+      "Donne moi l'email de Jean",
+      "email John",
+      "email John Doe",
+      "Passe-moi le numéro de téléphone portable de Thomas"
+    ];
+
+    messages.forEach(message => {
+      const result = analyzeMessage(message);
+      console.log(result);
+    });
+
+    return false;
+
+    const input = document.getElementById('prompt-input') as HTMLInputElement;
+    const message = input.value.trim() || "Passe-moi le numéro de téléphone portable de Thomas";
+    if (!message) return;
+
+    // Test
+    const result = analyzeMessage(message);
+    console.log(result);
 
     // Fetch recherche API
     // const res = await fetch('/api/search', {
