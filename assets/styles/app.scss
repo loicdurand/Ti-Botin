@@ -1,20 +1,88 @@
+@use './starter-complet';
+
 html,
 body {
-    height: 100%;
+    height: 90vh;
     margin: 0;
     padding: 0;
 }
 
-#carte-container {
-    height: 60%;
-    /* Ou 100vh pour full écran */
-    width: 100%;
-    position: relative;
-    /* Optionnel, pour overlays */
+// #carte-container {
+//     height: 60%;
+//     width: 100%;
+//     position: relative;
+// }
+
+// #map {
+//     height: 100%;
+//     width: 100%;
+// }
+
+.chat-container {
+    border: 1px solid var(--grey-5);
 }
 
-/* Carte prend 100% de la div parent */
+.sidebar {
+    height: 92vh;
+    background: #f0f0f0;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.signets {
+    list-style: none;
+    padding: 0;
+}
+
+.signet-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.surveillance {
+    background: #fff3cd;
+}
+
+.main-container {
+    padding: 0;
+}
+
+/* Badge jaune pour surveillance */
+.main-content {
+    height: 84vh;
+    position: relative;
+}
+
+#carte-container {
+    height: 100%;
+    width: 100%;
+}
+
 #map {
     height: 100%;
     width: 100%;
+}
+
+.prompt-bar {
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    min-height: 8vh;
+    max-height: 8vh;
+}
+
+#prompt-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#send-btn {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background: #25d366;
+    color: white;
+    border: none;
 }

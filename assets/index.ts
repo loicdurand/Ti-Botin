@@ -1,12 +1,8 @@
 import * as L from 'leaflet';
-import axios from "axios";
 
-interface Adresse {
-  id: string,
-  lat: string,
-  lng: string,
-  label: string
-}
+import chargement_de_la_carte from "./typescripts/chargement_carte";
+
+let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
 async function onReady(selector: string): Promise<any> {
   while (document.querySelector(selector) === null)
@@ -14,78 +10,68 @@ async function onReady(selector: string): Promise<any> {
   return document.querySelector(selector);
 };
 
-async function fetchAdresses(): Promise<Adresse[]> {
-  const { data } = await axios.get("/export/api/adresses");
-  return data;
+function addSignetToUI(unites: any[]) {
+  unites.forEach(unite => {
+    const signets = document.getElementById('signets-list');
+    const li = document.createElement('li');
+    li.className = 'signet-item';
+    li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
+    // li.onclick = () => map.setView([+unite.lat, +unite.lon], 12);  // Zoom sur clic signet
+    signets?.insertBefore(li, signets.firstChild);
+  });
 }
 
-async function chargement_de_la_carte() {
+function markAsSurveilled(id: number) {
+  // Ex: Ajoute classe ou badge
+  const item = document.querySelector(`[onclick*="setView"]`);  // À raffiner
+  if (item) item.classList.add('surveillance');
+}
 
-  const deptCode = '971';
+async function handleMarkerClick(adresse_id: number) {
 
-  const adresses = await fetchAdresses();
+  // Fetch API Symfony
+  const response = await fetch(`/export/api/unite/${adresse_id}`);
+  if (!response.ok) return;
+  const unites = await response.json();
 
-  // Initialiser la carte centrée sur la France par défaut
-  const map = L.map('map').setView([16.25, -61.56], 10);  // Centre approx. France, zoom national
-
-  // Ajouter les tuiles OpenStreetMap (gratuit, open-source)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-  // URL du GeoJSON des départements (tous inclus, simplifié)
-  const geoJsonUrl = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-avec-outre-mer.geojson';
-
-  // Group pour les points
-  const pointsLayer = L.layerGroup().addTo(map);
-  console.log({ adresses });
-  if (adresses.length) {
-    adresses.forEach(point => {
-      const marker = L.marker([+point.lat, +point.lng], {
-        //icon: createNumberIcon(point.id)
-      }).addTo(pointsLayer);
-      if (point.label) {
-        marker.bindPopup(`<b>${point.label}</b><br>Lat: ${(+point.lat).toFixed(4)}, Lng: ${(+point.lng).toFixed(4)}`);
-      }
-    });
+  // Ajoute signet si absent
+  if (!signets.has(adresse_id)) {
+    signets.add(adresse_id);
+    addSignetToUI(unites);
   }
 
-  // Charger et afficher le département
-  fetch(geoJsonUrl)
-    .then(response => response.json())
-    .then(geoJson => {
-      // Filtrer la feature pour le code département
-      const deptFeature = geoJson.features.find((feature: any) => feature.properties.code === deptCode);
+  // Marque en surveillance (update UI)
+  markAsSurveilled(adresse_id);
 
-      if (!deptFeature) {
-        console.error(`Département ${deptCode} non trouvé.`);
-        return;
-      }
+  // Optionnel : Popup détails
+  // L.popup()
+  //   .setLatLng([+adresse.lat, +adresse.lon])
+  //   .setContent(`<b>${adresse.nom}</b><br>${adresse.details}`)
+  //   .openOn(map);
+}
 
-      // Ajouter la layer GeoJSON avec style personnalisé (bordure rouge, remplissage semi-transparent)
-      const deptLayer = L.geoJSON(deptFeature, {
-        style: {
-          color: '#ff0000',  // Bordure rouge
-          weight: 1,
-          opacity: 1,
-          fillColor: 'transparent',  // Remplissage rose clair
-          fillOpacity: 1
-        },
-        onEachFeature: (feature, layer) => {
-          // Popup avec nom du département (optionnel)
-          layer.bindPopup(`Département : ${feature.properties.nom}`);
-        }
-      }).addTo(map);
+onReady('#map').then(async () => {
 
-      // Centrer et zoomer sur le département
-      map.fitBounds(deptLayer.getBounds(), {
-        padding: [0, 0],
-        maxZoom: 10
-      });
-      map.setZoom(10);
-    })
-    .catch(error => console.error('Erreur chargement GeoJSON:', error));
+  const map = await chargement_de_la_carte(handleMarkerClick);
 
-};
+  // Prompt send
+  document.getElementById('send-btn')?.addEventListener('click', async () => {
+    const input = document.getElementById('prompt-input') as HTMLInputElement;
+    const query = input.value.trim();
+    if (!query) return;
 
-onReady('#map').then(chargement_de_la_carte);
+    // Fetch recherche API
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `q=${encodeURIComponent(query)}`
+    });
+    // const unites = await res.json();
+
+    // Clear markers + add new
+    // pointsLayer.clearLayers();
+    // addMarkers(unites);
+
+    input.value = '';
+  });
+});

@@ -6,14 +6,34 @@
 
 {% block body %}
 
-	<h1>Ma page avec carte</h1>
-	<p>Du contenu avant...</p>
+	<div class="grid">
+		<div
+			class="chat-container row">
 
-	<!-- Ta div wrapper -->
-	<div id="carte-container">
-		<div id="map"></div>
+			<!-- Sidebar gauche : signets -->
+			<aside class="sidebar col s3">
+				<h3>Signets Récents</h3>
+				<ul
+					id="signets-list" class="signets"><!-- Dynamique via JS -->
+				</ul>
+			</aside>
+
+			<div
+				class="col s9 main-container">
+				<!-- Zone centrale : carte -->
+				<main class="main-content">
+					<div id="carte-container">
+						<div id="map"></div>
+					</div>
+				</main>
+
+				<!-- Footer : prompt -->
+				<footer class="prompt-bar">
+					<input type="text" id="prompt-input" placeholder="Interrogez l'annuaire..."/>
+					<button id="send-btn">Envoyer</button>
+				</footer>
+			</div>
+		</div>
 	</div>
-
-	<p>Du contenu après...</p>
 
 {% endblock %}

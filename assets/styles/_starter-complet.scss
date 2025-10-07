@@ -1,0 +1,631 @@
+@use "./colors";
+
+/* STARTER */
+
+* {
+	box-sizing: border-box;
+	/* repères */
+	/*border: 1px solid black;
+	background: rgba(0,0,0,.2);
+	padding-top: 5px;
+	padding-bottom: 5px;*/
+	/* repères */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a {
+	margin-top: 0;
+}
+
+a {
+	text-decoration: none;
+}
+
+/* images responsives */
+
+img {
+	vertical-align: middle;
+	/*hack css pour supprimer l'espace sous les images dans un block*/
+}
+
+figure {
+	margin: 0;
+}
+
+/* classes "rapides" */
+
+.hidden {
+	display: none !important;
+}
+
+.center {
+	text-align: center;
+}
+
+.bold {
+	font-weight: bold !important;
+}
+
+.fw-initial {
+	font-weight: initial;
+}
+
+.uline,
+.underline {
+	text-decoration: underline;
+}
+
+.uppercase {
+	text-transform: uppercase;
+}
+
+.lowercase {
+	text-transform: lowercase;
+}
+
+.capitalize {
+	text-transform: capitalize;
+}
+
+.relative {
+	position: relative;
+}
+
+/* Table */
+
+table {
+	border-collapse: collapse;
+	background-color: transparent;
+	width: 100%;
+	text-align: center;
+	border-spacing: 10px;
+	margin: 30px 0 20px 0;
+}
+
+table td {
+	padding: 5px 5px 5px 8px;
+	background: white;
+	border-spacing: 10px;
+	text-align: center;
+}
+
+table thead td {
+	/*background: var(--red-8);*/
+	color: white;
+	border: 1px solid var(--grey-8);
+}
+
+td,
+th {
+	padding: 0;
+	line-height: 1.71428571;
+	text-align: left;
+	vertical-align: top;
+}
+
+/* Centered */
+
+.quick-block {
+	height: 6em;
+	line-height: 7em;
+	white-space: nowrap;
+	text-align: center;
+}
+
+/* site occupe toute la largeur de la page */
+
+.container-fluid {
+	width: 100%;
+	padding: 15px;
+}
+
+/* site centré dans la page, occupe toute la largeur jusqu'à 1240px */
+
+.container {
+	max-width: 1240px;
+	margin: auto;
+	padding: 15px;
+}
+
+/* permet de placer les élements .col* côte à côte sans que le conteneur ne prenne une hauteur de 0 */
+
+.container:before,
+.container:after,
+.container-fluid:before,
+.container:after,
+.row:before,
+.row:after {
+	display: table;
+	content: "";
+	clear: both;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.row {
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 20px;
+	width: 100%;
+}
+
+.col {
+	/* goutières sur la grille */
+	padding: 0 0.75rem;
+	box-sizing: border-box;
+	float: left;
+	/* on donne aux éléments .col une position relative.
+	Ainsi, si on place un élément en absolute dans un .col, 
+	il se positionnera par rapport à cette balise */
+	position: relative;
+}
+
+/* all screens
+========================================================================== */
+
+body {
+	font-size: 14px;
+	height: 100%;
+}
+
+.divider {
+	float: left;
+	width: 100%;
+	height: 1em;
+}
+
+.s12 {
+	width: 100%;
+	max-width: 100%;
+}
+
+.s11 {
+	width: calc((100% / 12) * 11);
+	max-width: calc((100% / 12) * 11);
+}
+
+.s10 {
+	width: calc((100% / 12) * 10);
+	max-width: calc((100% / 12) * 10);
+}
+
+.s9 {
+	width: calc((100% / 12) * 9);
+	max-width: calc((100% / 12) * 9);
+}
+
+.s8 {
+	width: calc((100% / 12) * 8);
+	max-width: calc((100% / 12) * 8);
+}
+
+.s7 {
+	width: calc((100% / 12) * 7);
+	max-width: calc((100% / 12) * 7);
+}
+
+.s6 {
+	width: calc((100% / 12) * 6);
+	max-width: calc((100% / 12) * 6);
+}
+
+.s5 {
+	width: calc((100% / 12) * 5);
+	max-width: calc((100% / 12) * 5);
+}
+
+.s4 {
+	width: calc((100% / 12) * 4);
+	max-width: calc((100% / 12) * 4);
+}
+
+.s3 {
+	width: calc((100% / 12) * 3);
+	max-width: calc((100% / 12) * 3);
+}
+
+.s2 {
+	width: calc((100% / 12) * 2);
+	max-width: calc((100% / 12) * 2);
+}
+
+.s1 {
+	width: calc((100% / 12) * 1);
+	max-width: calc((100% / 12) * 1);
+}
+
+.offset-s11 {
+	margin-left: calc((100% / 12) * 11);
+}
+
+.offset-s10 {
+	margin-left: calc((100% / 12) * 10);
+}
+
+.offset-s9 {
+	margin-left: calc((100% / 12) * 9);
+}
+
+.offset-s8 {
+	margin-left: calc((100% / 12) * 8);
+}
+
+.offset-s7 {
+	margin-left: calc((100% / 12) * 7);
+}
+
+.offset-s6 {
+	margin-left: calc((100% / 12) * 6);
+}
+
+.offset-s5 {
+	margin-left: calc((100% / 12) * 5);
+}
+
+.offset-s4 {
+	margin-left: calc((100% / 12) * 4);
+}
+
+.offset-s3 {
+	margin-left: calc((100% / 12) * 3);
+}
+
+.offset-s2 {
+	margin-left: calc((100% / 12) * 2);
+}
+
+.offset-s1 {
+	margin-left: calc(100% / 12);
+}
+
+.offset-s0 {
+	margin-left: 0;
+}
+
+.hide {
+	display: none;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea,
+select {
+	color: var(--grey-9);
+	font-weight: bold;
+	font-size: 1.15em;
+}
+
+/* FORMAT TABLETTE
+========================================================================== */
+
+@media all and (min-width: 640px) {
+	body {
+		font-size: 15px;
+	}
+
+	.m12 {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.m11 {
+		width: calc((100% / 12) * 11);
+		max-width: calc((100% / 12) * 11);
+	}
+
+	.m10 {
+		width: calc((100% / 12) * 10);
+		max-width: calc((100% / 12) * 10);
+	}
+
+	.m9 {
+		width: calc((100% / 12) * 9);
+		max-width: calc((100% / 12) * 9);
+	}
+
+	.m8 {
+		width: calc((100% / 12) * 8);
+		max-width: calc((100% / 12) * 8);
+	}
+
+	.m7 {
+		width: calc((100% / 12) * 7);
+		max-width: calc((100% / 12) * 7);
+	}
+
+	.m6 {
+		width: calc((100% / 12) * 6);
+		max-width: calc((100% / 12) *6);
+	}
+
+	.m5 {
+		width: calc((100% / 12) * 5);
+		max-width: calc((100% / 12) * 5);
+	}
+
+	.m4 {
+		width: calc((100% / 12) * 4);
+		max-width: calc((100% / 12) * 4);
+	}
+
+	.m3 {
+		width: calc((100% / 12) * 3);
+		max-width: calc((100% / 12) * 3);
+	}
+
+	.m2 {
+		width: calc((100% / 12) * 2);
+		max-width: calc((100% / 12) * 2);
+	}
+
+	.m1 {
+		width: calc((100% / 12) * 1);
+		max-width: calc(100% / 12);
+	}
+
+	.offset-m11 {
+		margin-left: calc((100% / 12) * 11);
+	}
+
+	.offset-m10 {
+		margin-left: calc((100% / 12) * 10);
+	}
+
+	.offset-m9 {
+		margin-left: calc((100% / 12) * 9);
+	}
+
+	.offset-m8 {
+		margin-left: calc((100% / 12) * 8);
+	}
+
+	.offset-m7 {
+		margin-left: calc((100% / 12) * 7);
+	}
+
+	.offset-m6 {
+		margin-left: calc((100% / 12) * 6);
+	}
+
+	.offset-m5 {
+		margin-left: calc((100% / 12) * 5);
+	}
+
+	.offset-m4 {
+		margin-left: calc((100% / 12) * 4);
+	}
+
+	.offset-m3 {
+		margin-left: calc((100% / 12) * 3);
+	}
+
+	.offset-m2 {
+		margin-left: calc((100% / 12) * 2);
+	}
+
+	.offset-m1 {
+		margin-left: calc((100% / 12) * 1);
+	}
+
+	.offset-m0 {
+		margin-left: 0;
+	}
+
+	.modal-content {
+		width: 85%;
+	}
+
+	/* Centered */
+	.quick-block {
+		height: 10em;
+		line-height: 10em;
+	}
+}
+
+/* /TABLETTE */
+
+/* FORMAT LAPTOP
+========================================================================== */
+
+@media all and (min-width: 992px) {
+	body {
+		font-size: 16px;
+	}
+
+	.l12 {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.l11 {
+		width: calc((100% / 12) * 11);
+		max-width: calc((100% / 12) * 11);
+	}
+
+	.l10 {
+		width: calc((100% / 12) * 10);
+		max-width: calc((100% / 12) * 10);
+	}
+
+	.l9 {
+		width: calc((100% / 12) * 9);
+		max-width: calc((100% / 12) * 9);
+	}
+
+	.l8 {
+		width: calc((100% / 12) * 8);
+		max-width: calc((100% / 12) * 8);
+	}
+
+	.l7 {
+		width: calc((100% / 12) * 7);
+		max-width: calc((100% / 12) * 7);
+	}
+
+	.l6 {
+		width: calc((100% / 12) * 6);
+		max-width: calc((100% / 12) * 6);
+	}
+
+	.l5 {
+		width: calc((100% / 12) * 5);
+		max-width: calc((100% / 12) * 5);
+	}
+
+	.l4 {
+		width: calc((100% / 12) * 4);
+		max-width: calc((100% / 12) * 4);
+	}
+
+	.l3 {
+		width: calc((100% / 12) * 3);
+		max-width: calc((100% / 12) * 3);
+	}
+
+	.l2 {
+		width: calc((100% / 12) * 2);
+		max-width: calc((100% / 12) * 2);
+	}
+
+	.l1 {
+		width: calc(100% / 12);
+		max-width: calc(100% / 12);
+	}
+
+	.offset-l11 {
+		margin-left: calc((100% / 12) * 11);
+	}
+
+	.offset-l10 {
+		margin-left: calc((100% / 12) * 10);
+	}
+
+	.offset-l9 {
+		margin-left: calc((100% / 12) * 9);
+	}
+
+	.offset-l8 {
+		margin-left: calc((100% / 12) * 8);
+	}
+
+	.offset-l7 {
+		margin-left: calc((100% / 12) * 7);
+	}
+
+	.offset-l6 {
+		margin-left: calc((100% / 12) * 6);
+	}
+
+	.offset-l5 {
+		margin-left: calc((100% / 12) * 5);
+	}
+
+	.offset-l4 {
+		margin-left: calc((100% / 12) * 4);
+	}
+
+	.offset-l3 {
+		margin-left: calc((100% / 12) * 3);
+	}
+
+	.offset-l2 {
+		margin-left: calc((100% / 12) * 2);
+	}
+
+	.offset-l1 {
+		margin-left: calc((100% / 12) * 1);
+	}
+
+	.offset-l0 {
+		margin-left: 0;
+	}
+
+	.modal-content {
+		width: 65%;
+	}
+
+	input[type="text"],
+	input[type="date"],
+	input[type="number"],
+	textarea,
+	select {
+		font-weight: initial;
+		font-size: initial;
+	}
+
+	.mobile-nav.active {
+		width: 60%;
+	}
+
+	/* Quick-Block */
+	.quick-block {
+		height: 12em;
+		line-height: 12em;
+	}
+}
+
+/* /LAPTOPS */
+
+/* GRAND ECRAN
+========================================================================== */
+
+@media all and (min-width: 1170px) {
+	body {
+		font-size: 18px;
+	}
+
+	.modal {
+		left: 20%;
+		top: 5%;
+		width: 60%;
+	}
+
+	.modal-content {
+		width: 45%;
+	}
+
+	.mobile-nav.active {
+		width: 35%;
+	}
+
+	.hide-xl {
+		display: none !important;
+	}
+}
+
+/* /GRANDS ECRAN */
+
+/* Hide */
+
+@media only screen and (max-width: 639px) {
+	.hide-s {
+		display: none !important;
+	}
+}
+
+@media only screen and (min-width: 640px) and (max-width: 991px) {
+	.hide-m {
+		display: none !important;
+	}
+}
+
+@media only screen and (min-width: 992px) {
+	.hide-l {
+		display: none !important;
+	}
+}
+
+/* FIN STARTER */

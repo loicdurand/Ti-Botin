@@ -7,12 +7,13 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 
+use App\Entity\Unite;
 use App\Entity\Adresse;
 
 class ApiController extends AbstractController
 {
 
-    #[Route('/api/adresses', name: 'export_api_unites')]
+    #[Route('/api/adresses', name: 'export_api_adresses')]
     public function api_adresses(EntityManagerInterface $manager)
     {
         $output = [];
@@ -27,6 +28,21 @@ class ApiController extends AbstractController
             ];
         }
 
+        return $this->json($output);
+    }
+
+    #[Route('/api/unite/{adresse_id}', name: 'export_api_adresse')]
+    public function api_adresse(EntityManagerInterface $manager, string $adresse_id)
+    {
+        $output = [];
+        $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
+        foreach ($unites as $unite) {
+            $output[] = [
+                'id' => $unite->getId(),
+                'code' => $unite->getCode(),
+                'name' => $unite->getName()
+            ];
+        }
         return $this->json($output);
     }
 }
