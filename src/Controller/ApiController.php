@@ -37,10 +37,15 @@ class ApiController extends AbstractController
         $output = [];
         $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
         foreach ($unites as $unite) {
+            $adr = $unite->getAdresse();
             $output[] = [
                 'id' => $unite->getId(),
                 'code' => $unite->getCode(),
-                'name' => $unite->getName()
+                'name' => $unite->getName(),
+                'lat' => $adr->getLat(),
+                'lon' => $adr->getLng(),
+                'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
+
             ];
         }
         return $this->json($output);

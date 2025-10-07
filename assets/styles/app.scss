@@ -1,4 +1,5 @@
 @use './starter-complet';
+@use './sidebar.scss';
 
 html,
 body {
@@ -20,24 +21,6 @@ body {
 
 .chat-container {
     border: 1px solid var(--grey-5);
-}
-
-.sidebar {
-    height: 92vh;
-    background: #f0f0f0;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.signets {
-    list-style: none;
-    padding: 0;
-}
-
-.signet-item {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    cursor: pointer;
 }
 
 .surveillance {
