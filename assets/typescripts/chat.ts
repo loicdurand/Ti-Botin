@@ -44,6 +44,7 @@ export default class Chat {
     public analyzeMessage(query: string) {
 
         this.extends();
+
         const message = this.sanitize(query);
         const doc = this.nlp(message);
 
@@ -57,12 +58,12 @@ export default class Chat {
         let type, term, city;
         if (people.length > 0) {
             type = 'person';
-            term = people[0];
+            term = people.join(' ');
             city = null;
         } else if (organizations.length > 0) {
             type = 'unite';
-            term = organizations[0];
-            city = this.replaceAlias(cities[0]);
+            term = organizations.join(' ');
+            city = this.replaceAlias(cities.join(' '));
         } else {
             type = 'unknown';
             term = null;
@@ -70,20 +71,20 @@ export default class Chat {
         }
 
         // Mappe les attributs (ex. : "numéro portable" -> "telephone_portable")
-        let mappedAttributes = [];
-        if (attributes.includes('numero') && attributes.includes('portable')) {
-            mappedAttributes.push('telephone_portable');
-        } else if (attributes.includes('email')) {
-            mappedAttributes.push('email');
-        } else if (attributes.includes('adresse')) {
-            mappedAttributes.push('adresse');
-        }
+        // let mappedAttributes = [];
+        // if (attributes.includes('numero') && attributes.includes('portable')) {
+        //     mappedAttributes.push('telephone_portable');
+        // } else if (attributes.includes('email')) {
+        //     mappedAttributes.push('email');
+        // } else if (attributes.includes('adresse')) {
+        //     mappedAttributes.push('adresse');
+        // }
 
         return {
             type,
             term,
             city,
-            mappedAttributes: mappedAttributes.join(' '),
+            // mappedAttributes: mappedAttributes.join(' '),
             attributes: attributes.join(' '),
             message
         };
@@ -100,19 +101,25 @@ export default class Chat {
 
     private sanitize(query: string): string {
         return utils.pipe(
-            utils.string.sansAccent,
-            (q: string) => q.toLowerCase(),
-            (q: string) => q.replace(/['-]/g, ' ')
+            // utils.string.sansAccent,
+            // (q: string) => q.toLowerCase(),
+            // (q: string) => q.replace(/['-]/g, ' ')
+            (q: string) => q.replaceAll(/[\?\.]?$/g, '')
         )(query);
     }
 
     private replaceAlias(city: string) {
+
+        if (!city || city === null)
+            return null;
+
         const alias_exists = this.aliasses.City.find(({ commune, aliasses }) => {
             return aliasses.includes(city.trim());
         });
 
         if (alias_exists === null || !alias_exists)
             return city;
+
         return alias_exists.commune;
     }
 }

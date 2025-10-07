@@ -65,7 +65,7 @@ class ApiController extends AbstractController
             'communes_alias'  => $adrRepo->getCommunesAlias(),
 
         ];
-        dd($results['communes_alias']);
+        // dd($results['communes_alias']);
         return $this->json($results);
     }
 }

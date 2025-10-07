@@ -63,6 +63,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (chat_response.ok)
     chat_data = await chat_response.json();
 
+  chat_data.communes_alias.map(({ aliasses }: any) => {
+    aliasses.forEach((alias: string) => chat_data.communes.push(alias));
+  });
+
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
@@ -75,18 +79,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('send-btn')?.addEventListener('click', async () => {
 
     const messages = [
-      "tel port de Loïc",
+      "tel port de nicolas yuikety",
       "tel de Loïc",
-      "Donne moi l'email de Jean-Michel",
-      "email John",
-      "email John Doe",
-      "Passe-moi le numéro de téléphone portable de Thomas",
+      "Donne moi l'email de Jean-Michel", // ok
+      "email John", // ok
+      "email John Doe", // ok
+      "Passe-moi le numéro de téléphone portable de Thomas", // ok
       "tel br pap",
-      "tel de la solc",
-      "Donne moi l'email de la BTA Baie-Mahault",
-      "email sag",
+      "tel de la solc", // ok
+      "Donne moi l'email de la BTA Baie-Mahault", // ok
+      "email sag", // ok
       "email cie moule",
-      "Passe-moi le numéro de téléphone du comgend"
+      "Passe-moi le numéro de téléphone du comgend",
+      "Quel est le numéro de la bta de marie-galante?",
+      "Quel est le numéro de la bta des saintes?"
+
     ];
 
     messages.forEach(message => {
