@@ -1,5 +1,5 @@
 import chargement_de_la_carte from "./typescripts/chargement_carte";
-import analyzeMessage from "./typescripts/chat";
+import Chat from "./typescripts/chat";
 
 let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
@@ -58,31 +58,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   }
 
+  let chat_data: any = {};
+  const chat_response = await fetch('/export/api/chat-data');
+  if (chat_response.ok)
+    chat_data = await chat_response.json();
+
+  const chat = new Chat()
+    .addWords(chat_data.communes, 'City')
+    .addWords([...chat_data.unites, 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
+    .addWords(['numero', 'num', 'n°', 'telephone', 'tel', 'fixe', 'fix', 'portable', 'mobile', 'port', 'email', 'courriel', 'e-mail', 'mail', 'adresse'], 'Attribute')
+    .addWords(chat_data.prenoms, 'FirstName')
+    .addWords(chat_data.noms, 'Name');
+
   // Prompt send
   document.getElementById('send-btn')?.addEventListener('click', async () => {
 
     const messages = [
       "tel port de Loïc",
       "tel de Loïc",
-      "Donne moi l'email de Jean",
+      "Donne moi l'email de Jean-Michel",
       "email John",
       "email John Doe",
-      "Passe-moi le numéro de téléphone portable de Thomas"
+      "Passe-moi le numéro de téléphone portable de Thomas",
+      "tel br pap",
+      "tel de la solc",
+      "Donne moi l'email de la BTA Baie-Mahault",
+      "email sag",
+      "email cie moule",
+      "Passe-moi le numéro de téléphone du comgend"
     ];
 
     messages.forEach(message => {
-      const result = analyzeMessage(message);
+      const result = chat.analyzeMessage(message);
       console.log(result);
     });
 
     return false;
 
     const input = document.getElementById('prompt-input') as HTMLInputElement;
-    const message = input.value.trim() || "Passe-moi le numéro de téléphone portable de Thomas";
+    const message = input.value.trim();
     if (!message) return;
 
     // Test
-    const result = analyzeMessage(message);
+    const result = chat.analyzeMessage(message);
     console.log(result);
 
     // Fetch recherche API

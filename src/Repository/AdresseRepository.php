@@ -16,6 +16,24 @@ class AdresseRepository extends ServiceEntityRepository
         parent::__construct($registry, Adresse::class);
     }
 
+    public function getDistinctCommunes()
+    {
+        $results = [];
+        $communes = $this->createQueryBuilder('a')
+            ->select('a.commune')
+            ->getQuery()
+            ->getResult();
+        foreach ($communes as $data) {
+            $terms = preg_split("/\s/", strtolower($data['commune']));
+            $exclus = ['le', 'la', 'les', 'l', 'd', 'de', 'des'];
+            foreach ($terms as $term) {
+                if (!in_array($term, $exclus) && !in_array($term, $results))
+                    $results[] = $term;
+            }
+        }
+        return $results;
+    }
+
     //    /**
     //     * @return Adresse[] Returns an array of Adresse objects
     //     */

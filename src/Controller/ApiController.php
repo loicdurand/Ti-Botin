@@ -7,6 +7,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 
+use App\Entity\User;
 use App\Entity\Unite;
 use App\Entity\Adresse;
 
@@ -14,7 +15,7 @@ class ApiController extends AbstractController
 {
 
     #[Route('/api/adresses', name: 'export_api_adresses')]
-    public function api_adresses(EntityManagerInterface $manager)
+    public function api_adresses(EntityManagerInterface $manager): Response
     {
         $output = [];
         $adresses = $manager->getRepository(Adresse::class)->findAll();
@@ -32,7 +33,7 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/unite/{adresse_id}', name: 'export_api_adresse')]
-    public function api_adresse(EntityManagerInterface $manager, string $adresse_id)
+    public function api_adresse(EntityManagerInterface $manager, string $adresse_id): Response
     {
         $output = [];
         $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
@@ -49,5 +50,19 @@ class ApiController extends AbstractController
             ];
         }
         return $this->json($output);
+    }
+
+    #[Route('/api/chat-data', name: 'export_api_chatdata')]
+    public function api_chatdata(EntityManagerInterface $manager): Response
+    {
+        $UserRepo = $manager->getRepository(User::class);
+        $results = [
+            'prenoms' => $UserRepo->getDistinctPrenoms(),
+            'noms' => $UserRepo->getDistinctNoms(),
+            'unites' => $manager->getRepository(Unite::class)->getDistinctUnitesTypes(),
+            'communes' => $manager->getRepository(Adresse::class)->getDistinctCommunes()
+
+        ];
+        return $this->json($results);
     }
 }
