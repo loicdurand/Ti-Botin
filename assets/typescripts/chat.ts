@@ -108,7 +108,7 @@ export default class Chat {
 
     private sanitize(query: string): string {
         return utils.pipe(
-            // utils.string.sansAccent,
+            utils.string.normalizeAccents,
             // (q: string) => q.toLowerCase(),
             (q: string) => q.replaceAll("'", ' '),
             (q: string) => q.replaceAll(/[\?\.]?$/g, '')

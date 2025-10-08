@@ -19,3 +19,29 @@ export function sansAccent(str: string): string {
 
     return str;
 }
+
+export function normalizeAccents(text: string) {
+    const accentsMap = {
+        'àáâäãåâ': 'aaaaaâ',
+        'èéêë': 'eeee',
+        'ìíîï': 'iiii',
+        'òóôöõø': 'ooooo',
+        'ùúûü': 'uuuu',
+        'ç': 'c',
+        'ñ': 'n',
+        // Majuscules
+        'ÀÁÂÄÃÅ': 'AAAAA',
+        'ÈÉÊË': 'EEEE',
+        'ÌÍÎÏ': 'IIII',
+        'ÒÓÔÖÕØ': 'OOOOO',
+        'ÙÚÛÜ': 'UUUU',
+        'Ç': 'C',
+        'Ñ': 'N',
+    };
+    let normalized = text;
+    for (const [accents, plain] of Object.entries(accentsMap)) {
+        const regex = new RegExp(`[${accents}]`, 'g');
+        normalized = normalized.replace(regex, (match: string) => plain[accents.indexOf(match)]);
+    }
+    return normalized.toLowerCase(); // Pour matcher le lexique en minuscules
+}

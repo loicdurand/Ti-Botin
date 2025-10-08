@@ -1,3 +1,4 @@
+import { normalizeAccents } from './typescripts/utils/str';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
 import Chat from "./typescripts/chat";
 
@@ -83,8 +84,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
     .addWords(['numero', 'num', 'n°', 'telephone', 'tel', 'fixe', 'fix', 'portable', 'mobile', 'port', 'email', 'courriel', 'e-mail', 'mail', 'adresse'], 'Attribute')
-    .addWords(chat_data.prenoms, 'FirstName')
-    .addWords(chat_data.noms, 'Name')
+    .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
+    .addWords(chat_data.noms.map(normalizeAccents), 'Name')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
 
