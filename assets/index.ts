@@ -1,4 +1,5 @@
 import { normalizeAccents } from './typescripts/utils/str';
+import * as terms from './typescripts/lexic';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
 import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/chat";
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
-    .addWords(['numero', 'num', 'n°', 'telephone', 'tel', 'fixe', 'fix', 'portable', 'mobile', 'port', 'email', 'courriel', 'e-mail', 'mail', 'adresse'], 'Attribute')
+    .addWords([...terms.TELEPHONE_TERMS, ...terms.MAIL_TERMS, 'adresse'], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
     .addAliasses(chat_data.communes_alias, "City")
@@ -73,9 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sent_bubble = addBubbleToTUI('sent');
     sent_bubble.textContent = message;
 
-    const received_bubble = addBubbleToTUI('received');
-
-    const responsemanager = new ResponseManager(received_bubble);
+    const responsemanager = new ResponseManager(addBubbleToTUI);
     responsemanager.addLoader();
 
     const analyzed = chat.analyzeMessage(message);
@@ -129,11 +128,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function addBubbleToTUI(sens: 'sent' | 'received'): HTMLElement {
+  function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
     const bubbleCtnr = document.querySelector('#bubble-container .row');
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
-    bubble.classList.add(`message-${sens}`);
+    if (sens === 'input-bubble') {
+      bubble.classList.add('input-bubble');
+      bubble.classList.add('received');
+    } else {
+      bubble.classList.add(`message-${sens}`);
+    }
     bubbleCtnr?.appendChild(bubble);
     return bubble;
   }

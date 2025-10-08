@@ -56,9 +56,9 @@ class UserRepository extends ServiceEntityRepository
             ->setParameter('prenom', $prenom);
         if (!is_null($nom)) {
             $query
-                ->andWhere("u.nom = :nom")
+                ->andWhere("u.nom LIKE :nom")
                 // ->orWhere("CONCAT(u.prenom, ' ', u.nom) = :term")
-                ->setParameter('nom', $nom);
+                ->setParameter('nom', $nom . '%');
             // ->setParameter('term', $term);
         }
         $persons = $query
