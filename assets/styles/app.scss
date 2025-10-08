@@ -37,6 +37,81 @@ body {
     position: relative;
 }
 
+#bubble-container {
+    height: 84vh;
+    position: absolute;
+    top: 0;
+    z-index: 400;
+    width: 100%;
+
+    & .row {
+
+        & .bubble {
+            min-height: 3em;
+            font-style: italic;
+            display: inline;
+            float: right;
+            width: auto;
+            margin: 1% 1% 0 55%;
+            max-width: 45%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+            /* Messages reçus (à gauche, de l'API ou réponses) */
+            &.message-received {
+                align-self: flex-start;
+                background: #ffffff;
+                /* Blanc */
+                color: #000;
+                border-bottom-left-radius: 4px;
+                /* Coin plat à gauche */
+                margin-right: 5%;
+            }
+
+            &.message-received::after {
+                left: -8px;
+                bottom: 0;
+                border-right-color: #ffffff;
+                /* Pointe vers la droite */
+                border-bottom-color: #ffffff;
+            }
+
+            /* Messages envoyés (à droite, tes prompts) */
+            &.message-sent {
+                align-self: flex-end;
+                background: #dcf8c6;
+                /* Vert clair WhatsApp */
+                color: #000;
+                border-bottom-right-radius: 4px;
+                /* Coin plat à droite */
+            }
+
+            &.message-sent::after {
+                right: -8px;
+                bottom: 0;
+                border-left-color: #dcf8c6;
+                /* Pointe vers la gauche */
+                border-bottom-color: #dcf8c6;
+            }
+
+            /* Timestamps ou métadonnées (optionnel) */
+            &.message-meta {
+                font-size: 11px;
+                color: #666;
+                margin-top: 4px;
+                text-align: right;
+                /* Pour envoyés */
+            }
+
+        }
+    }
+}
+
 #carte-container {
     height: 100%;
     width: 100%;

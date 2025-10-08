@@ -8,33 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const map = await chargement_de_la_carte(handleMarkerClick);
 
-  function addSignetToUI(unites: any[]) {
-    const signets = document.getElementById('signets-list');
-    const li = document.createElement('li');
-    li.className = 'signet-item';
-    const unite = unites[0];
-
-    if (unites.length == 1) {
-      li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-      li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-      signets?.insertBefore(li, signets.firstChild);
-    } else {
-      const h3 = document.createElement('h3');
-      h3.innerHTML = unite.label;
-      li.appendChild(h3);
-      const ul = document.createElement('ul');
-      unites.forEach(unite => {
-        const sub_li = document.createElement('li');
-        sub_li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-        sub_li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-        ul.appendChild(sub_li);
-      });
-      li.appendChild(ul);
-      signets?.insertBefore(li, signets.firstChild);
-
-    }
-  }
-
   function markAsSurveilled(id: number) {
     // Ex: Ajoute classe ou badge
     const item = document.querySelector(`[onclick*="setView"]`);  // À raffiner
@@ -92,34 +65,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Prompt send
   document.getElementById('send-btn')?.addEventListener('click', async () => {
 
-    // const messages = [
-    //   // "tel port de nicolas yuikety",
-    //   // "j'ai besoin du tel de Loïc Durand",
-    //   // "Donne moi l'email de Jean-Michel", // ok
-    //   // "email John", // ok
-    //   // "email John Doe", // ok
-    //   // "Passe-moi le numéro de téléphone portable de Thomas", // ok
-    //   // "tel br pap",
-    //   // "tel de la solc", // ok
-    //   // "Donne moi l'email de la BTA Baie-Mahault", // ok
-    //   // "email sag", // ok
-    //   // "email cie moule",
-    //   // "Passe-moi le numéro de téléphone du comgend",
-    //   "Quel est le numéro de la bta de grand bourg?",
-    //   // "Quel est le numéro de la bta des saintes?"
-
-    // ];
-
-    // messages.forEach(message => {
-    //   const result = chat.analyzeMessage(message);
-    //   console.log(result); // communes_alias
-    // });
-
-    // return false;
-
     const input = document.getElementById('prompt-input') as HTMLInputElement;
     const message = input.value.trim();
     if (!message) return;
+
+    addBubbleToTUI(message);
 
     const analyzed = chat.analyzeMessage(message);
     console.log(analyzed);
@@ -134,15 +84,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!res.ok)
       return false;
 
-    const persons = await res.json();
+    const data = await res.json();
 
-    console.log(persons);
-    // const unites = await res.json();
-
-    // Clear markers + add new
-    // pointsLayer.clearLayers();
-    // addMarkers(unites);
+    console.log(data);
 
     input.value = '';
   });
+
+  function addSignetToUI(unites: any[]) {
+    const signets = document.getElementById('signets-list');
+    const li = document.createElement('li');
+    li.className = 'signet-item';
+    const unite = unites[0];
+
+    if (unites.length == 1) {
+      li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
+      li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
+      signets?.insertBefore(li, signets.firstChild);
+    } else {
+      const h3 = document.createElement('h3');
+      h3.innerHTML = unite.label;
+      li.appendChild(h3);
+      const ul = document.createElement('ul');
+      unites.forEach(unite => {
+        const sub_li = document.createElement('li');
+        sub_li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
+        sub_li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
+        ul.appendChild(sub_li);
+      });
+      li.appendChild(ul);
+      signets?.insertBefore(li, signets.firstChild);
+
+    }
+  }
+
+  function addBubbleToTUI(message: string) {
+    const bubbleCtnr = document.querySelector('#bubble-container .row');
+    const bubble = document.createElement('div');
+    bubble.classList.add('bubble');
+    bubble.classList.add('message-sent');
+    bubble.textContent = message;
+    bubbleCtnr?.appendChild(bubble);
+  }
+
+
 });
