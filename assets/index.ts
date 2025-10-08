@@ -118,11 +118,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function addBubbleToTUI(message: string) {
+  function addBubbleToTUI(message: string, sens: 'sent' | 'received') {
     const bubbleCtnr = document.querySelector('#bubble-container .row');
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
-    bubble.classList.add('message-sent');
+    bubble.classList.add(`message-${sens}`);
     bubble.textContent = message;
     bubbleCtnr?.appendChild(bubble);
   }
