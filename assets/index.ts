@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log(data);
     if (analyzed.type == "person")
-      responsemanager.printPersonMessage(data);
+      responsemanager.printPersonMessage(data, analyzed.attributes);
     else if (analyzed.type == "unknown")
       responsemanager.printUnknownMessage();
 

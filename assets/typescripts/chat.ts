@@ -86,7 +86,7 @@ export default class Chat {
             term,
             city,
             // mappedAttributes: mappedAttributes.join(' '),
-            attributes: attributes.join(' '),
+            attributes: attributes,
             // message
         };
     }

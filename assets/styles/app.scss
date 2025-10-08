@@ -111,15 +111,31 @@ body {
                     cursor: pointer;
                     /* Cliquable pour zoom/action */
                     transition: background 0.2s;
-                }
 
-                .user-card:hover {
-                    background: #e0e0e0;
-                    /* Hover pour feedback */
-                }
+                    &:hover {
+                        background: #e0e0e0;
 
-                .user-attribute {
-                    display: none;
+                        /* Hover pour feedback */
+                        & .user-attribute {
+                            display: block;
+                        }
+                    }
+
+                    &.display-fixe .user-attribute.display-numero-fixe {
+                        display: block;
+                    }
+
+                    &.display-port .user-attribute.display-numero-port {
+                        display: block;
+                    }
+
+                    &.display-mail .user-attribute.display-mail {
+                        display: block;
+                    }
+
+                    .user-attribute {
+                        display: none;
+                    }
                 }
 
                 .user-header {
