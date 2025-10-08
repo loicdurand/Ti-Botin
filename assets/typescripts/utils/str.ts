@@ -45,3 +45,14 @@ export function normalizeAccents(text: string) {
     }
     return normalized.toLowerCase(); // Pour matcher le lexique en minuscules
 }
+
+export function addZeros(str: string, maxlen = 2) {
+    str = '' + str;
+    while (str.length < maxlen)
+        str = "0" + str;
+    return str;
+}
+
+export function pluralize(nb: number, sing: string = '', plur: string = '') {
+    return (isNaN(nb) || +nb > 1) ? plur || (sing + 's') : sing;
+}

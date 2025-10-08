@@ -71,6 +71,38 @@ body {
                 border-bottom-left-radius: 4px;
                 /* Coin plat à gauche */
                 margin-right: 5%;
+                $base: #94c6fd;
+
+                $dots: 3;
+                $time: 150ms;
+
+
+
+                &.loading {
+                    font-size: .75em;
+                    font-size: 0.75em;
+                    padding: .5em 1em;
+                    min-height: 0;
+
+                    span {
+                        background: $base;
+                        display: inline-block;
+                        height: .3em;
+                        width: .3em;
+                        margin-left: 5px;
+
+                        will-change: opacity;
+                        -webkit-animation: fadeinout (($time * $dots) + ($time + 1000ms)) infinite;
+                        animation: fadeinout (($time * $dots) + ($time + 1000ms)) infinite;
+                    }
+
+                    @for $i from 1 through $dots {
+                        span:nth-child(#{$i}) {
+                            -webkit-animation-delay: $time * $i;
+                            animation-delay: $time * $i;
+                        }
+                    }
+                }
             }
 
             &.message-received::after {
@@ -81,14 +113,13 @@ body {
                 border-bottom-color: #ffffff;
             }
 
-            /* Messages envoyés (à droite, tes prompts) */
+            /* Messages envoyés */
             &.message-sent {
                 align-self: flex-end;
                 background: #dcf8c6;
                 /* Vert clair WhatsApp */
                 color: #000;
                 border-bottom-right-radius: 4px;
-                /* Coin plat à droite */
             }
 
             &.message-sent::after {
@@ -143,4 +174,32 @@ body {
     background: #25d366;
     color: white;
     border: none;
+}
+
+@-webkit-keyframes fadeinout {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeinout {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }

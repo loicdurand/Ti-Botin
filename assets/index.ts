@@ -1,5 +1,6 @@
 import { normalizeAccents } from './typescripts/utils/str';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
+import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/chat";
 
 let signets: Set<number> = new Set();  // IDs des signets (simule session)
@@ -69,7 +70,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const message = input.value.trim();
     if (!message) return;
 
-    addBubbleToTUI(message);
+    const sent_bubble = addBubbleToTUI('sent');
+    sent_bubble.textContent = message;
+
+    const received_bubble = addBubbleToTUI('received');
+
+    const responsemanager = new ResponseManager(received_bubble);
+    responsemanager.addLoader();
 
     const analyzed = chat.analyzeMessage(message);
     console.log(analyzed);
@@ -87,6 +94,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = await res.json();
 
     console.log(data);
+    if (analyzed.type == "person")
+      responsemanager.printPersonMessage(data);
+    else if (analyzed.type == "unknown")
+      responsemanager.printUnknownMessage();
 
     input.value = '';
   });
@@ -118,13 +129,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function addBubbleToTUI(message: string, sens: 'sent' | 'received') {
+  function addBubbleToTUI(sens: 'sent' | 'received'): HTMLElement {
     const bubbleCtnr = document.querySelector('#bubble-container .row');
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
     bubble.classList.add(`message-${sens}`);
-    bubble.textContent = message;
     bubbleCtnr?.appendChild(bubble);
+    return bubble;
   }
 
 

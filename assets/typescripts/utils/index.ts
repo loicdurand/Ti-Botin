@@ -1,6 +1,6 @@
 // import * as date from "./date";
+import * as doc from "./document";
 import * as string from "./str";
 import { pipe } from "./pipe";
-// import { compose } from "./compose";
 
-export default { /* date, compose,*/ string, pipe };
+export default { doc, string, pipe };
