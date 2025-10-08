@@ -74,22 +74,25 @@ class ApiController extends AbstractController
     public function api_search(Request $request, EntityManagerInterface $manager): Response
     {
         $data = $request->query->get('q') ?? $request->request->get('q');
-        // try {
-        $data = json_decode($data);
-        $type = $data->type ?? $data->type;
-        $term = $data->term ?? $data->term;
-        $city = $data->city ?? $data->city;
+        try {
+            $data = json_decode($data);
+            $type = $data->type ?? $data->type;
+            $term = $data->term ?? $data->term;
+            $city = $data->city ?? $data->city;
 
-        if ($type === 'person') {
-            $persons = $manager->getRepository(User::class)->findByIdentity($term);
-            return $this->json($persons);
-        } else if ($type === 'unite') {
+            if ($type === 'person') {
+                $persons = $manager->getRepository(User::class)->findByIdentity($term);
+                return $this->json($persons);
+            } else if ($type === 'unite') {
+                $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+                return $this->json($unites);
+            }
+            return $this->json([]);
+            // $attributes = $data['attributes'] ?? null;
+        } catch (\Throwable $th) {
+            return $this->json([
+                'error' => $th
+            ]);
         }
-        // $attributes = $data['attributes'] ?? null;
-        // } catch (\Throwable $th) {
-        //     return $this->json([
-        //         'error' => $th
-        //     ]);
-        // }
     }
 }

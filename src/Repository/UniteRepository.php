@@ -33,6 +33,26 @@ class UniteRepository extends ServiceEntityRepository
         return $results;
     }
 
+    public function findByIdentifier($term, $city)
+    {
+
+        $query = $this->createQueryBuilder('un')
+            ->select('un.code, un.name, adr.lat, adr.lng, un.name as label ')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.name LIKE :name")
+            ->setParameter('name', $term . '%');
+        if (!is_null($city)) {
+            $query
+                ->andWhere("adr.commune = :city")
+                ->setParameter('city', $city);
+        }
+        $unites = $query
+            ->getQuery()
+            ->getResult();
+
+        return $unites;
+    }
+
     //    /**
     //     * @return Unite[] Returns an array of Unite objects
     //     */

@@ -48,14 +48,13 @@ class UserRepository extends ServiceEntityRepository
     {
         $split = explode(' ', $term, 2);
         $prenom = $split[0];
-        $nom = count($split) > 1 ? $split[1] : false;
-        $results = [];
+        $nom = count($split) > 1 ? $split[1] : null;
         $query = $this->createQueryBuilder('u')
             ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.tph, u.port, u.mail, u.qualification')
             ->innerJoin('u.unite', 'un')
             ->andWhere("u.prenom = :prenom")
             ->setParameter('prenom', $prenom);
-        if ($nom !== false) {
+        if (!is_null($nom)) {
             $query
                 ->andWhere("u.nom = :nom")
                 // ->orWhere("CONCAT(u.prenom, ' ', u.nom) = :term")
@@ -65,14 +64,6 @@ class UserRepository extends ServiceEntityRepository
         $persons = $query
             ->getQuery()
             ->getResult();
-
-        // $persons = $this->createQueryBuilder('u')  // Alias 'u' pour User
-        //     ->select('u, un')  // Sélectionne les champs de u et un (équivalent à u.*, un.*)
-        //     ->innerJoin('u.unite', 'un')  // Jointure sur la relation 'unite' de l'entité User
-        //     ->where('u.prenom = :prenom')
-        //     ->setParameter('prenom', $prenom)
-        //     ->getQuery()
-        //     ->getResult();
 
         return $persons;
     }
