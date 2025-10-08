@@ -46,7 +46,6 @@ export default class Chat {
         this.extends();
 
         const message = this.sanitize(query);
-        console.log(message);
 
         const doc = this.nlp(message);
 

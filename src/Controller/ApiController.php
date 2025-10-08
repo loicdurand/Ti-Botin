@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
@@ -67,5 +68,28 @@ class ApiController extends AbstractController
         ];
         // dd($results['communes_alias']);
         return $this->json($results);
+    }
+
+    #[Route('/api/search', name: 'export_api_search')]
+    public function api_search(Request $request, EntityManagerInterface $manager): Response
+    {
+        $data = $request->query->get('q') ?? $request->request->get('q');
+        // try {
+        $data = json_decode($data);
+        $type = $data->type ?? $data->type;
+        $term = $data->term ?? $data->term;
+        $city = $data->city ?? $data->city;
+
+        if ($type === 'person') {
+            $persons = $manager->getRepository(User::class)->findByIdentity($term);
+            return $this->json($persons);
+        } else if ($type === 'unite') {
+        }
+        // $attributes = $data['attributes'] ?? null;
+        // } catch (\Throwable $th) {
+        //     return $this->json([
+        //         'error' => $th
+        //     ]);
+        // }
     }
 }

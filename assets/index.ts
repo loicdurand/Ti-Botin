@@ -121,16 +121,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const message = input.value.trim();
     if (!message) return;
 
-    // Test
-    const result = chat.analyzeMessage(message);
-    console.log(result);
+    const analyzed = chat.analyzeMessage(message);
+    console.log(analyzed);
 
     // Fetch recherche API
-    // const res = await fetch('/api/search', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    //   body: `q=${encodeURIComponent(query)}`
-    // });
+    const res = await fetch('/export/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
+    });
+
+    if (!res.ok)
+      return false;
+
+    const persons = await res.json();
+
+    console.log(persons);
     // const unites = await res.json();
 
     // Clear markers + add new
