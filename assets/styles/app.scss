@@ -47,6 +47,7 @@ body {
     z-index: 400;
     max-width: 40%;
     overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.1);
 
     & .row {
 
@@ -56,7 +57,8 @@ body {
             display: inline;
             float: right;
             width: auto;
-            margin: 0 1% 1em auto;
+            // margin: 0 1% 1em auto;
+            margin: 3% 1em 0 1em;
             max-width: 100%;
             padding: 12px 16px;
             border-radius: 18px;
@@ -75,7 +77,7 @@ body {
                 color: #000;
                 border-bottom-left-radius: 4px;
                 /* Coin plat à gauche */
-                margin-right: 5%;
+                margin-right: 10%;
                 $base: #94c6fd;
 
                 $dots: 3;
@@ -227,6 +229,7 @@ body {
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             /* Ombre légère */
             align-items: center;
+            width: -webkit-fill-available;
 
 
             /* L'input lui-même */
@@ -253,6 +256,51 @@ body {
                 /* Gris très clair */
                 border-radius: 12px;
                 /* Renforce l'effet bulle */
+            }
+
+            // Boutons radio pour choisir un utilisateur parmis une sélection
+            & .column-radios {
+                display: flex;
+                border-radius: 3px;
+                overflow: hidden;
+                border: 1px solid #b6b6b6;
+                flex-direction: column;
+
+                & div {
+                    position: relative;
+                    flex: 1;
+                }
+
+                & input {
+                    width: 100%;
+                    height: 2ch;
+                    opacity: 0;
+                }
+
+                & label {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    color: #b6b6b6;
+                    width: 100%;
+                    height: 100%;
+                    background: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    pointer-events: none;
+                    border-right: 1px solid #b6b6b6;
+                }
+
+                & div:last-child label {
+                    border-right: 0;
+                }
+
+                & input:checked+label {
+                    background: #25d366;
+                    font-weight: 500;
+                    color: #fff;
+                }
             }
         }
     }
