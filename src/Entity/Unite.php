@@ -36,6 +36,33 @@ class Unite
     #[ORM\ManyToOne(inversedBy: 'unites', cascade: ['persist'])]
     private ?Adresse $adresse = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $cn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $subdivision = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $telephoneNumber = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $mail = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $l = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $postalAddress = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $capaciteJudiciaire = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $departmentUID = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $parentDepartmentUID = null;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -132,6 +159,114 @@ class Unite
     public function setAdresse(?Adresse $adresse): static
     {
         $this->adresse = $adresse;
+
+        return $this;
+    }
+
+    public function getCn(): ?string
+    {
+        return $this->cn;
+    }
+
+    public function setCn(?string $cn): static
+    {
+        $this->cn = $cn;
+
+        return $this;
+    }
+
+    public function getSubdivision(): ?string
+    {
+        return $this->subdivision;
+    }
+
+    public function setSubdivision(?string $subdivision): static
+    {
+        $this->subdivision = $subdivision;
+
+        return $this;
+    }
+
+    public function getTelephoneNumber(): ?string
+    {
+        return $this->telephoneNumber;
+    }
+
+    public function setTelephoneNumber(?string $telephoneNumber): static
+    {
+        $this->telephoneNumber = $telephoneNumber;
+
+        return $this;
+    }
+
+    public function getMail(): ?string
+    {
+        return $this->mail;
+    }
+
+    public function setMail(?string $mail): static
+    {
+        $this->mail = $mail;
+
+        return $this;
+    }
+
+    public function getL(): ?string
+    {
+        return $this->l;
+    }
+
+    public function setL(?string $l): static
+    {
+        $this->l = $l;
+
+        return $this;
+    }
+
+    public function getPostalAddress(): ?string
+    {
+        return $this->postalAddress;
+    }
+
+    public function setPostalAddress(?string $postalAddress): static
+    {
+        $this->postalAddress = $postalAddress;
+
+        return $this;
+    }
+
+    public function isCapaciteJudiciaire(): ?bool
+    {
+        return $this->capaciteJudiciaire;
+    }
+
+    public function setCapaciteJudiciaire(?bool $capaciteJudiciaire): static
+    {
+        $this->capaciteJudiciaire = $capaciteJudiciaire;
+
+        return $this;
+    }
+
+    public function getDepartmentUID(): ?string
+    {
+        return $this->departmentUID;
+    }
+
+    public function setDepartmentUID(?string $departmentUID): static
+    {
+        $this->departmentUID = $departmentUID;
+
+        return $this;
+    }
+
+    public function getParentDepartmentUID(): ?string
+    {
+        return $this->parentDepartmentUID;
+    }
+
+    public function setParentDepartmentUID(?string $parentDepartmentUID): static
+    {
+        $this->parentDepartmentUID = $parentDepartmentUID;
 
         return $this;
     }

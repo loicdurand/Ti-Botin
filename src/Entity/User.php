@@ -48,6 +48,24 @@ class User
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $qualification = null;
 
+    #[ORM\Column(length: 8, nullable: true)]
+    private ?string $positionAdministrative = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $accountStatus = null;
+
+    #[ORM\Column(length: 8, nullable: true)]
+    private ?string $civilite = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $employeeType = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $grade_long = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $statutCorps = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -181,6 +199,78 @@ class User
     public function setQualification(?string $qualification): static
     {
         $this->qualification = $qualification;
+
+        return $this;
+    }
+
+    public function getPositionAdministrative(): ?string
+    {
+        return $this->positionAdministrative;
+    }
+
+    public function setPositionAdministrative(?string $positionAdministrative): static
+    {
+        $this->positionAdministrative = $positionAdministrative;
+
+        return $this;
+    }
+
+    public function getAccountStatus(): ?string
+    {
+        return $this->accountStatus;
+    }
+
+    public function setAccountStatus(?string $accountStatus): static
+    {
+        $this->accountStatus = $accountStatus;
+
+        return $this;
+    }
+
+    public function getCivilite(): ?string
+    {
+        return $this->civilite;
+    }
+
+    public function setCivilite(?string $civilite): static
+    {
+        $this->civilite = $civilite;
+
+        return $this;
+    }
+
+    public function getEmployeeType(): ?string
+    {
+        return $this->employeeType;
+    }
+
+    public function setEmployeeType(?string $employeeType): static
+    {
+        $this->employeeType = $employeeType;
+
+        return $this;
+    }
+
+    public function getGradeLong(): ?string
+    {
+        return $this->grade_long;
+    }
+
+    public function setGradeLong(?string $grade_long): static
+    {
+        $this->grade_long = $grade_long;
+
+        return $this;
+    }
+
+    public function getStatutCorps(): ?string
+    {
+        return $this->statutCorps;
+    }
+
+    public function setStatutCorps(?string $statutCorps): static
+    {
+        $this->statutCorps = $statutCorps;
 
         return $this;
     }

@@ -70,7 +70,6 @@ export default class {
                     that.bubble.classList.remove('input-bubble');
                     that.bubble.classList.add('message-received');
                 }
-                // this_func.apply(that, [[user], attrs]);
             }));
         }
     }
