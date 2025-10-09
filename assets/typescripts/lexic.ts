@@ -15,3 +15,7 @@ export const TELEPHONE_TERMS = [
 export const MAIL_TERMS = [
     'email', 'courriel', 'e-mail', 'mail'
 ];
+
+export const ADRESSE_TERMS = [
+    'adresse', 'postale', 'rue', 'commune', 'ville', 'endroit', 'lieu', 'trouve', 'est', 'etre'
+];

@@ -109,7 +109,7 @@ body {
                     }
                 }
 
-                .user-card {
+                .entity-card {
                     background: #f9f9f9;
                     /* Fond légèrement plus clair que la bulle */
                     border-radius: 10px;
@@ -123,48 +123,52 @@ body {
                         background: #e0e0e0;
 
                         /* Hover pour feedback */
-                        & .user-attribute {
+                        & .entity-attribute {
                             display: block;
                         }
                     }
 
-                    &.display-fixe .user-attribute.display-numero-fixe {
+                    &.display-fixe .entity-attribute.display-numero-fixe {
                         display: block;
                     }
 
-                    &.display-port .user-attribute.display-numero-port {
+                    &.display-port .entity-attribute.display-numero-port {
                         display: block;
                     }
 
-                    &.display-mail .user-attribute.display-mail {
+                    &.display-mail .entity-attribute.display-mail {
                         display: block;
                     }
 
-                    .user-attribute {
+                    &.display-adresse .entity-attribute.display-adresse {
+                        display: block;
+                    }
+
+                    .entity-attribute {
                         display: none;
                     }
                 }
 
-                .user-header {
+                .entity-header {
                     display: flex;
                     justify-content: flex-start;
                     align-items: center;
                     font-size: 14px;
                 }
 
-                .user-unit {
+                .entity-unit {
                     font-size: 12px;
                     color: #555;
                 }
 
-                .user-details {
+                .entity-details {
                     display: inline-block;
                     font-size: 12px;
                     color: #333;
                     margin-top: 5px;
                 }
 
-                .user-contact {
+                .entity-contact {
                     display: inline;
                     margin-top: 5px;
                     font-size: 12px;
@@ -172,12 +176,12 @@ body {
                     /* Bleu cliquable */
                 }
 
-                .user-contact-icon {
+                .entity-contact-icon {
                     font-size: 14px;
                 }
 
                 /* Ajuste la bulle pour la carte */
-                .message-bubble .user-card {
+                .message-bubble .entity-card {
                     max-width: 100%;
                     /* Prend toute la largeur de la bulle */
                 }

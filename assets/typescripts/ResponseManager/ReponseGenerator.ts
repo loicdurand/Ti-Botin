@@ -2,13 +2,14 @@ export default class {
 
     private unknown_hints: string[];
     private no_result_hints: string[];
+    private no_unite_hints: string[];
     private one_result_hints: string[];
+    private one_unite_hints: string[];
     private one_user_hints: string[];
     private one_user_with_precisions_hints: string[];
     private init_many_results_hints: string[];
     private init_choose_user_hints: string[];
     private init_ask_unite_hints: string[];
-    private one_unite_hints: string[];
 
     constructor() {
         this.unknown_hints = [
@@ -23,11 +24,26 @@ export default class {
             "Aïe! Je n'ai pas trouvé de réponse pour vous...",
             "Zut, je n'ai rien trouvé..."
         ];
+        this.no_unite_hints = [
+            ...this.no_result_hints,
+            "Je n'ai trouvé aucune unité. Êtes-vous sûr de votre saisie?",
+            "Aïe! Je n'ai pas trouvé cette unité...",
+            "Mince... Si votre saisie était correcte, alors j'ai besoin d'une mise à jour!",
+            "Aucune unité trouvée",
+            "Je ne connais pas cette unité!"
+        ];
         this.one_result_hints = [
             "J'ai trouvé ce que vous cherchez:",
             "Un résultat trouvé:",
+            "Voici ce que j'ai trouvé:",
             "Et voilà!",
             "Tada!"
+        ];
+        this.one_unite_hints = [
+            ...this.one_result_hints,
+            "Et l'unité recherchée est:",
+            "Cette unité correspond à vos critères",
+            "La pêche a été bonne. J'ai trouvée cette unité:"
         ];
         this.one_user_hints = [
             ...this.one_result_hints,
@@ -77,9 +93,19 @@ export default class {
         return this.no_result_hints[this.randomIntFromInterval(0, max)];
     }
 
+    get no_unite() {
+        const max = this.no_unite_hints.length - 1;
+        return this.no_unite_hints[this.randomIntFromInterval(0, max)];
+    }
+
     get one_user() {
         const max = this.one_user_hints.length - 1;
         return this.one_user_hints[this.randomIntFromInterval(0, max)];
+    }
+
+    get one_unite() {
+        const max = this.one_unite_hints.length - 1;
+        return this.one_unite_hints[this.randomIntFromInterval(0, max)];
     }
 
     get one_user_with_precisions() {
@@ -100,11 +126,6 @@ export default class {
     get init_ask_unite() {
         const max = this.init_ask_unite_hints.length - 1;
         return this.init_ask_unite_hints[this.randomIntFromInterval(0, max)];
-    }
-
-    get one_unite() {
-        const max = this.one_unite_hints.length - 1;
-        return this.one_unite_hints[this.randomIntFromInterval(0, max)];
     }
 
     private randomIntFromInterval(min: number, max: number) { // min and max included 

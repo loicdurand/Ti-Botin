@@ -58,16 +58,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
-    .addWords([...terms.TELEPHONE_TERMS, ...terms.MAIL_TERMS, 'adresse'], 'Attribute')
+    .addWords([...terms.TELEPHONE_TERMS, ...terms.MAIL_TERMS, ...terms.ADRESSE_TERMS], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
 
   // Prompt send
-  document.getElementById('send-btn')?.addEventListener('click', async () => {
+  const send = document.getElementById('send-btn') as HTMLButtonElement;
+  const input = document.getElementById('prompt-input') as HTMLInputElement;
 
-    const input = document.getElementById('prompt-input') as HTMLInputElement;
+  send?.addEventListener('click', handleSendEvent);
+  input?.addEventListener('keyup', e => {
+    if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
+  });
+
+  async function handleSendEvent() {
+
     const message = input.value.trim();
     if (!message) return;
 
@@ -95,11 +102,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log(data);
     if (analyzed.type == "person")
       responsemanager.printPersonMessage(data, analyzed.attributes);
-    else if (analyzed.type == "unknown")
+    else if (analyzed.type == "unite")
+      responsemanager.printUniteMessage(data, analyzed.attributes);
+    else
       responsemanager.printUnknownMessage();
 
     input.value = '';
-  });
+  }
 
   function addSignetToUI(unites: any[]) {
     const signets = document.getElementById('signets-list');
@@ -140,6 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     bubbleCtnr?.appendChild(bubble);
     return bubble;
+
   }
 
 

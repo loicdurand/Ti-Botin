@@ -2,6 +2,14 @@ import { normalizeAccents } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 
+type Unite = {
+    code: number,
+    name: string,
+    lat: string,
+    lng: string,
+    label: string // Nom de l'unité ou de la caserne si pls unités au même endroit
+}
+
 type User = {
     code_unite: string,
     fonction: string,
@@ -37,6 +45,19 @@ export default class {
         // affiche "chargement en cours..."
         this.addEmptySpans();
         return this;
+    }
+
+    public printUniteMessage(data: Unite[], attrs: string[]) {
+        console.log({ data, attrs });
+        this.bubble.classList.remove('loading');
+        const nb_results = data.length;
+        // Cas facile: aucun résultat
+        if (!nb_results) {
+            this.bubble.innerHTML = this.responder.no_unite;
+            // Cas facile: 1 seul résultat
+        } else if (nb_results == 1) {
+            this.bubble.innerHTML = this.addUniteCard(data[0], attrs);
+        }
     }
 
     public printPersonMessage(data: User[], attrs: string[]) {
@@ -103,6 +124,43 @@ export default class {
         this.bubble.classList.add('loading');
     }
 
+    private addUniteCard(unite: Unite, attrs: string[]): string {
+        let message = this.responder.one_unite;
+        let cardCls: string[] = [];
+
+        // Traitement des demandes de TPH
+        if (terms.TELEPHONE_TERMS.find(attr => attrs.map(normalizeAccents).includes(attr))) {
+            cardCls.push('display-fixe');
+        }
+
+        // Traitement des demandes concernant l'e-mail
+        if (terms.MAIL_TERMS.find(attr => attrs.includes(attr))) {
+            cardCls.push('display-mail');
+        }
+
+        if (terms.ADRESSE_TERMS.find(attr => attrs.includes(attr))) {
+            cardCls.push('display-adresse');
+        }
+
+        // Si rien demandé, on affiche toutes les données
+        if (!cardCls.length)
+            cardCls = ['display-fixe', 'display-mail', 'display-adresse'];
+
+        return /*html*/`
+        ${message}
+        <div class="entity-card ${cardCls.join(' ')}" data-id="${unite.code}">
+        <div class="entity-header">
+            <span class="entity-code">${unite.code}</span>&nbsp;-
+            <strong>${unite.name}</strong>
+        </div>
+        <div class="entity-contact" title="Mail: @TODO&#10;Téléphone: @TODO">
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;@TODO</div>
+            <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;@TODO</div>
+        </div>
+    </div>
+    `;
+    }
+
     private addUserCard(user: User, attrs: string[]): string {
         let message = this.responder.one_user;
         let cardCls: string[] = [];
@@ -138,21 +196,21 @@ export default class {
         }
         return /*html*/`
         ${message}
-        <div class="user-card ${cardCls.join(' ')}" data-id="${user.id}">
-        <div class="user-header">
-            <span class="user-grade">${user.grade}</span>&nbsp;
+        <div class="entity-card ${cardCls.join(' ')}" data-id="${user.id}">
+        <div class="entity-header">
+            <span class="entity-grade">${user.grade}</span>&nbsp;
             <strong>${user.prenom} ${user.nom}</strong>
         </div>
-        <div class="user-details">
+        <div class="entity-details">
             ${['C', 'A'].includes(user.fonction) ?
-                `<div class="user-fonction user-attribute display-unite">${fonctions[user.fonction as ('A' | 'C')]}</div>` : ''
+                `<div class="entity-fonction entity-attribute display-unite">${fonctions[user.fonction as ('A' | 'C')]}</div>` : ''
             }
-            <div class="user-unit display-unite">${user.unite} (${user.code_unite})</div>
+            <div class="entity-unit display-unite">${user.unite} (${user.code_unite})</div>
         </div>
-        <div class="user-contact" title="Mail: ${user.mail}&#10;Téléphone: ${user.tph}&#10;Portable: ${user.port}&#10;Qualification: ${user.qualification}&#10;Spécificité: ${user.specificite}">
-            <div class="user-attribute display-mail"><span class="user-contact-icon">📧</span>&nbsp;${user.mail}</div>
-            <div class="user-attribute display-numero-fixe"><span class="user-contact-icon">📞</span>&nbsp;${user.tph}</div>
-            <div class="user-attribute display-numero-port"><span class="user-contact-icon">📱</span>&nbsp;${user.port}</div>
+        <div class="entity-contact" title="Mail: ${user.mail}&#10;Téléphone: ${user.tph}&#10;Portable: ${user.port}&#10;Qualification: ${user.qualification}&#10;Spécificité: ${user.specificite}">
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${user.mail}</div>
+            <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${user.tph}</div>
+            <div class="entity-attribute display-numero-port"><span class="entity-contact-icon">📱</span>&nbsp;${user.port}</div>
         </div>
     </div>
     `;
@@ -177,7 +235,7 @@ export default class {
             const div = document.createElement('div')
             const input = document.createElement('input')
             input.setAttribute('type', 'radio');
-            input.setAttribute('name', 'user-radio');
+            input.setAttribute('name', 'entity-radio');
             input.setAttribute('value', user.id);
             input.classList.add('prompt-input');
             if (cb)
