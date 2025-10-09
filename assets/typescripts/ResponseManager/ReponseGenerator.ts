@@ -8,6 +8,7 @@ export default class {
     private one_user_hints: string[];
     private one_user_with_precisions_hints: string[];
     private init_many_results_hints: string[];
+    private init_choose_unite_hints: string[];
     private init_choose_user_hints: string[];
     private init_ask_unite_hints: string[];
 
@@ -59,16 +60,24 @@ export default class {
         this.init_many_results_hints = [
             "J'ai touvé plusieurs résultats. Complétez l'action ci-dessous, s'il vous plaît.",
             "Plusieurs résultats. Aidez-moi à affiner tout ça!",
-            "Veuillez compléter l'action ci-dessous."
+            "Veuillez compléter l'action ci-dessous.",
+            "Faite un peu de tri là-dedans!",
+            "Aidez-moi, je ne sais plus où j'en suis!",
         ];
         this.init_choose_user_hints = [
+            ...this.init_many_results_hints,
             "J'ai trouvé plusieurs personnes correspondant à votre recherche. Sélectionnez celle que vous voulez:",
             "Vous avez l'embarras du choix. Qui recherchez-vous?",
             "Ôtez-moi d'un doute. Vous cherchez qui?",
-            "Faite un peu de tri là-dedans!",
-            "Aidez-moi, je ne sais plus où j'en suis!",
             "Je n'ai pas trouvé de personne correspondant à votre recherche dans votre unité. Voici la liste étendue des résultats.",
             "Hum... Qui choisir?"
+        ];
+        this.init_choose_unite_hints = [
+            ...this.init_many_results_hints,
+            "J'ai trouvé plusieurs unités correspondant à votre recherche. Sélectionnez celle que vous voulez:",
+            "Vous avez l'embarras du choix. Quel unité recherchez-vous?",
+            "Ôtez-moi d'un doute. Vous cherchez quel unité?",
+            "Hum... Laquelle choisir?"
         ];
         this.init_ask_unite_hints = [
             "Indiquez-nous le code de votre unité. Ainsi, lorsque vous demanderez les infos d'une personne en ne fournissant que son prénom, vous obtiendrez en priorité les informations de personnes dans votre unité.",
@@ -121,6 +130,11 @@ export default class {
     get init_choose_user() {
         const max = this.init_choose_user_hints.length - 1;
         return this.init_choose_user_hints[this.randomIntFromInterval(0, max)];
+    }
+
+    get init_choose_unite() {
+        const max = this.init_choose_unite_hints.length - 1;
+        return this.init_choose_unite_hints[this.randomIntFromInterval(0, max)];
     }
 
     get init_ask_unite() {

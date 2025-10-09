@@ -57,6 +57,21 @@ export default class {
             // Cas facile: 1 seul résultat
         } else if (nb_results == 1) {
             this.bubble.innerHTML = this.addUniteCard(data[0], attrs);
+        } else {
+            const that = this;
+            this.bubble.outerHTML = '';
+            this.bubble = this.bubbleBuilder('input-bubble');
+            this.bubble.innerHTML = this.responder.init_choose_unite;
+            this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), attrs, function (this: HTMLInputElement, e: Event) {
+                const code = (e.target as HTMLInputElement)?.value;
+                const unite = data.find(unite => unite.code == +code);
+                if (unite) {
+                    that.bubble.innerHTML = that.addUniteCard(unite, attrs);
+                    that.bubble.classList.remove('input-bubble');
+                    that.bubble.classList.add('message-received');
+                }
+                // this_func.apply(that, [[user], attrs]);
+            }));
         }
     }
 
@@ -92,7 +107,7 @@ export default class {
                     this.bubble.outerHTML = '';
                     this.bubble = this.bubbleBuilder('input-bubble');
                     this.bubble.innerHTML = this.responder.init_choose_user;
-                    this.bubble.appendChild(this.addSelector(data, attrs, function (this: HTMLInputElement, e: Event) {
+                    this.bubble.appendChild(this.addSelector(data.map(user => ({ id: user.id, label: `${user.prenom} ${user.nom.toUpperCase()}` })), attrs, function (this: HTMLInputElement, e: Event) {
                         const value = (e.target as HTMLInputElement)?.value;
                         const user = data.find(user => user.id == value);
                         if (user) {
@@ -228,23 +243,23 @@ export default class {
 
     }
 
-    private addSelector(users: User[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
+    private addSelector(users: { id: string, label: string }[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
         const group = document.createElement('group')
         group.classList.add('column-radios');
-        users.forEach(user => {
+        users.forEach(({ id, label }) => {
             const div = document.createElement('div')
             const input = document.createElement('input')
             input.setAttribute('type', 'radio');
             input.setAttribute('name', 'entity-radio');
-            input.setAttribute('value', user.id);
+            input.setAttribute('value', id);
             input.classList.add('prompt-input');
             if (cb)
                 input.addEventListener('change', cb);
             div.appendChild(input);
 
-            const label = document.createElement('label');
-            label.textContent = `${user.prenom} ${user.nom.toUpperCase()}`
-            div.appendChild(label);
+            const input_label = document.createElement('label');
+            input_label.textContent = label
+            div.appendChild(input_label);
             group.appendChild(div);
         });
 
