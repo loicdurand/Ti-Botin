@@ -25,7 +25,7 @@ class AppFixtures extends Fixture
             // Autres champs
             $unt->setCn(is_null($unite->getAttribute('cn')) ? "" : $unite->getAttribute('cn')[0]);
             $unt->setSubdivision(is_null($unite->getAttribute('subdivision')) ? "" : $unite->getAttribute('subdivision')[0]);
-            $unt->setTelephoneNumber(is_null($unite->getAttribute('telephoneNumber')) ? "" : $unite->getAttribute('telephonenumber')[0]);
+            $unt->setTelephoneNumber(is_null($unite->getAttribute('telephoneNumber')) ? "" : $unite->getAttribute('telephoneNumber')[0]);
             $unt->setMail(is_null($unite->getAttribute('mail')) ? "" : $unite->getAttribute('mail')[0]);
             $unt->setL(is_null($unite->getAttribute('l')) ? "" : $unite->getAttribute('l')[0]);
             $unt->setPostalAddress(is_null($unite->getAttribute('postalAddress')) ? "" : $unite->getAttribute('postalAddress')[0]);
