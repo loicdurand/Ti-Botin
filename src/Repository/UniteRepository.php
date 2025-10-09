@@ -16,6 +16,43 @@ class UniteRepository extends ServiceEntityRepository
         parent::__construct($registry, Unite::class);
     }
 
+    public function getDistinctUnitesTypes()
+    {
+        $results = [];
+        $unites = $this->createQueryBuilder('u')
+            ->select('u.name')
+            ->getQuery()
+            ->getResult();
+        foreach ($unites as $data) {
+            [$term,] = preg_split("/[\s,\-]+/", $data['name']);
+            // foreach ($terms as $term) {
+            if (!in_array($term, $results))
+                $results[] = $term;
+            // }
+        }
+        return $results;
+    }
+
+    public function findByIdentifier($term, $city)
+    {
+
+        $query = $this->createQueryBuilder('un')
+            ->select('un.code, un.name, adr.lat, adr.lng, un.name as label ')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.name LIKE :name")
+            ->setParameter('name', $term . '%');
+        if (!is_null($city)) {
+            $query
+                ->andWhere("adr.commune = :city")
+                ->setParameter('city', $city);
+        }
+        $unites = $query
+            ->getQuery()
+            ->getResult();
+
+        return $unites;
+    }
+
     //    /**
     //     * @return Unite[] Returns an array of Unite objects
     //     */
