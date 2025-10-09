@@ -51,9 +51,13 @@ class UserRepository extends ServiceEntityRepository
         $nom = count($split) > 1 ? $split[1] : null;
         $query = $this->createQueryBuilder('u')
             ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.tph, u.port, u.mail, u.qualification')
-            ->innerJoin('u.unite', 'un')
-            ->andWhere("u.prenom = :prenom")
-            ->setParameter('prenom', $prenom);
+            ->innerJoin('u.unite', 'un');
+        if ($prenom !== '#') {
+            $query
+                ->andWhere("u.prenom = :prenom")
+                ->setParameter('prenom', $prenom);
+        }
+
         if (!is_null($nom)) {
             $query
                 ->andWhere("u.nom LIKE :nom")
@@ -64,6 +68,9 @@ class UserRepository extends ServiceEntityRepository
         $persons = $query
             ->getQuery()
             ->getResult();
+
+        if (count($persons) == 0)
+            return $this->findByIdentity('# ' . $term);
 
         return $persons;
     }

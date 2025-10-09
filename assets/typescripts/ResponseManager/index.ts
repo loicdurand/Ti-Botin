@@ -17,21 +17,19 @@ type User = {
     unite: string
 }
 
-let index = 0;
+// let index = 0;
+
+const STORAGE_KEY = 'Ti-Botin@971';
 
 export default class {
 
     private bubbleBuilder: Function;
     private bubble: HTMLElement;
-    private id: number;
-    private storeKey: string;
     private responder = new ReponseGenerator();
 
     constructor(bubbleBuilderFunction: (sens: "sent" | "received") => HTMLElement) {
         this.bubbleBuilder = bubbleBuilderFunction;
         this.bubble = bubbleBuilderFunction('received');
-        this.id = index++;
-        this.storeKey = `response-manager#${this.id}`;
         return this;
     }
 
@@ -51,22 +49,21 @@ export default class {
         } else if (nb_results == 1) {
             this.bubble.innerHTML = this.addUserCard(data[0], attrs);
         } else {
-            console.log(localStorage.getItem(`${this.storeKey}_unite`));
+            console.log(localStorage.getItem(`${STORAGE_KEY}_unite`));
 
             if (!this.isKnownUnite()) {
                 const that = this;
-                const storeKey = this.storeKey;
                 const this_func = this.printPersonMessage;
 
                 this.bubble.innerHTML = this.responder.init_many_results;
                 this.bubble = this.bubbleBuilder('input-bubble');
                 this.bubble.innerHTML = this.responder.init_ask_unite;
                 this.bubble.appendChild(this.addPrompt(function (this: HTMLInputElement, e: Event) {
-                    localStorage.setItem(`${storeKey}_unite`, this.value);
+                    localStorage.setItem(`${STORAGE_KEY}_unite`, this.value);
                     this_func.apply(that, [data, attrs]);
                 }))
             } else {
-                const userInSameUnite = data.find(user => user.code_unite == localStorage.getItem(`${this.storeKey}_unite`))
+                const userInSameUnite = data.find(user => user.code_unite == localStorage.getItem(`${STORAGE_KEY}_unite`))
                 if (userInSameUnite) {
                     this.bubble.innerHTML = this.addUserCard(userInSameUnite, attrs);
                 }
@@ -80,11 +77,10 @@ export default class {
     }
 
     private isKnownUnite() {
-        return localStorage.getItem(`${this.storeKey}_unite`) !== null;
+        return localStorage.getItem(`${STORAGE_KEY}_unite`) !== null;
     }
 
     private addEmptySpans() {
-        this.bubble.id = `bubble-${this.id}`;
         for (let i = 0; i < 3; i++) {
             const span = document.createElement('span');
             this.bubble.appendChild(span);
