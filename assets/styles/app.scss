@@ -79,8 +79,6 @@ body {
     top: 0;
     right: 0;
     z-index: 400;
-    width: 40%;
-    max-width: 40%;
     background-color: rgba(0, 0, 0, 0.1);
     padding-bottom: 1em;
 
@@ -429,8 +427,8 @@ body {
 }
 
 #prompt-input {
-    margin-left: 60%;
-    width: 40%;
+    margin-left: calc((100% / 12) * 2);
+    // width: 40%;
     padding: 10px 40px 10px 15px;
     /* Espace à droite pour le bouton */
     border-radius: 50px;
@@ -493,5 +491,29 @@ body {
 
     100% {
         opacity: 0;
+    }
+}
+
+@media all and (min-width: 640px) {
+    #prompt-input {
+        margin-left: 60%;
+    }
+}
+
+@media all and (min-width: 992px) {
+    #prompt-input {
+        margin-left: calc((100% / 12) * 8);
+    }
+}
+
+@media all and (min-width: 1170px) {
+    #bubble-container {
+        width: 25%;
+        max-width: 25%;
+    }
+
+    #prompt-input {
+        margin-left: 75%;
+        width: 25%;
     }
 }
