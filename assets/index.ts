@@ -6,6 +6,8 @@ import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/ChatAnalyser";
 import { Point } from './typescripts/types';
 
+import { User, Unite } from './typescripts/types';
+
 // let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -15,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!target)
       return;
 
-    console.log(target);
     if (target.matches('.entity-card *')) {
       const bubble = getParent(target, '.bubble') as HTMLElement;
       const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
@@ -115,7 +116,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       responsemanager.addLoader();
 
       const analyzed = chat.analyzeMessage(message);
-      console.log(analyzed);
+
+      if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
+        const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
+        analyzed.type = type;
+        analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
+      }
 
       // Fetch recherche API
       const res = await fetch('/export/api/search', {
@@ -127,15 +133,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok)
         return false;
 
-      const data = await res.json();
+      const data: User[] | Unite[] = await res.json();
 
       console.log(data);
-      if (analyzed.type == "person")
-        responsemanager.printPersonMessage(data, analyzed.attributes);
-      else if (analyzed.type == "unite")
-        responsemanager.printUniteMessage(data, analyzed.attributes);
-      else
+
+      if (analyzed.type == "person") {
+        if (data.length === 1) chat.setContext(data[0] as User);
+        responsemanager.printPersonMessage(data as User[], analyzed.attributes);
+      } else if (analyzed.type == "unite") {
+        if (data.length === 1) chat.setContext(data[0] as Unite);
+        responsemanager.printUniteMessage(data as Unite[], analyzed.attributes);
+      } else {
         responsemanager.printUnknownMessage();
+      }
     }, 1000);
 
     input.value = '';
