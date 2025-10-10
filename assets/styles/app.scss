@@ -247,6 +247,16 @@ body {
                 /* Vert clair WhatsApp */
                 color: #000;
                 border-bottom-right-radius: 4px;
+                transform: translateY(100%) translateX(100%);
+                /* Position initiale "hors écran" – on override par classe */
+                transition: all 0.075s ease-out;
+
+                /* Transition fluide pour l'apparition */
+                &.appear {
+                    opacity: 1;
+                    transform: translateY(0);
+                    /* Glisse vers le haut en place */
+                }
             }
 
             &.message-sent::after {

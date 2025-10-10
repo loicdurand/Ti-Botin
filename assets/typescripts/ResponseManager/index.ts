@@ -143,6 +143,7 @@ export default class {
     }
 
     public printUnknownMessage(): this {
+        this.bubble.classList.remove('loading');
         this.typeMessage(this.bubble, this.responder.unknown);
         return this;
     }

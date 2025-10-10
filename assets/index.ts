@@ -80,32 +80,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const sent_bubble = addBubbleToTUI('sent');
     sent_bubble.textContent = message;
+    setTimeout(() => {
+      sent_bubble.classList.add('appear');
+    }, 100);
 
-    const responsemanager = new ResponseManager(addBubbleToTUI);
-    responsemanager.addLoader();
+    setTimeout(async () => {
+      const responsemanager = new ResponseManager(addBubbleToTUI);
+      responsemanager.addLoader();
 
-    const analyzed = chat.analyzeMessage(message);
-    console.log(analyzed);
+      const analyzed = chat.analyzeMessage(message);
+      console.log(analyzed);
 
-    // Fetch recherche API
-    const res = await fetch('/export/api/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
-    });
+      // Fetch recherche API
+      const res = await fetch('/export/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
+      });
 
-    if (!res.ok)
-      return false;
+      if (!res.ok)
+        return false;
 
-    const data = await res.json();
+      const data = await res.json();
 
-    console.log(data);
-    if (analyzed.type == "person")
-      responsemanager.printPersonMessage(data, analyzed.attributes);
-    else if (analyzed.type == "unite")
-      responsemanager.printUniteMessage(data, analyzed.attributes);
-    else
-      responsemanager.printUnknownMessage();
+      console.log(data);
+      if (analyzed.type == "person")
+        responsemanager.printPersonMessage(data, analyzed.attributes);
+      else if (analyzed.type == "unite")
+        responsemanager.printUniteMessage(data, analyzed.attributes);
+      else
+        responsemanager.printUnknownMessage();
+    }, 1000);
 
     input.value = '';
   }
@@ -141,6 +146,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bubbleCtnr = document.querySelector('#bubble-container .row');
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
+
+
+
     if (sens === 'received' || sens === 'input-bubble')
       bubble.classList.add('typing');
     if (sens === 'input-bubble') {
