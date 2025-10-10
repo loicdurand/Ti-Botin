@@ -186,6 +186,50 @@ body {
                     /* Prend toute la largeur de la bulle */
                 }
 
+                /*
+                 * effet "en train de taper au clavier"
+                 */
+                .text {
+                    /* Le texte s'affiche char par char, avec une transition fluide */
+                    display: inline-block;
+                    opacity: 0;
+                    transition: opacity 0.1s ease;
+                    /* Rendre l'apparition douce */
+                }
+
+                .text.visible {
+                    opacity: 1;
+                }
+
+                /* Curseur clignotant pour simuler le typing (optionnel) */
+                .message-received::after {
+                    content: '|';
+                    animation: blink 1s infinite;
+                    margin-left: 2px;
+                }
+
+                @keyframes blink {
+
+                    0%,
+                    50% {
+                        opacity: 1;
+                    }
+
+                    51%,
+                    100% {
+                        opacity: 0;
+                    }
+                }
+
+                /* Arrêter le curseur une fois fini */
+                .message-received.typing::after {
+                    display: inline-block;
+                }
+
+                /*
+                  * fin effet "en train de taper au clavier"
+                  */
+
             }
 
             &.message-received::after {

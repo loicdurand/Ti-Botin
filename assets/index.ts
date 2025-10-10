@@ -141,12 +141,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bubbleCtnr = document.querySelector('#bubble-container .row');
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
+    if (sens === 'received' || sens === 'input-bubble')
+      bubble.classList.add('typing');
     if (sens === 'input-bubble') {
       bubble.classList.add('input-bubble');
       bubble.classList.add('received');
     } else {
       bubble.classList.add(`message-${sens}`);
     }
+    const span = document.createElement('span');
+    span.classList.add('text');
+    bubble.appendChild(span);
     bubbleCtnr?.appendChild(bubble);
     return bubble;
 

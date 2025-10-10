@@ -1,7 +1,6 @@
 import { normalizeAccents } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
-import { gridLayer } from 'leaflet';
 
 type Unite = {
     code: number,
@@ -40,6 +39,8 @@ const STORAGE_KEY = 'Ti-Botin@971';
 
 export default class {
 
+    private speed = 50; // Vitesse de "typing"
+
     private bubbleBuilder: Function;
     private bubble: HTMLElement;
     private responder = new ReponseGenerator();
@@ -62,24 +63,27 @@ export default class {
         const nb_results = data.length;
         // Cas facile: aucun résultat
         if (!nb_results) {
-            this.bubble.innerHTML = this.responder.no_unite;
+            this.typeMessage(this.bubble, this.responder.no_unite);
             // Cas facile: 1 seul résultat
         } else if (nb_results == 1) {
-            this.bubble.innerHTML = this.addUniteCard(data[0], attrs);
+            this.typeMessage(this.bubble, this.responder.one_unite, () => {
+                this.bubble.innerHTML += this.addUniteCard(data[0], attrs);
+            });
         } else {
             const that = this;
             this.bubble.outerHTML = '';
             this.bubble = this.bubbleBuilder('input-bubble');
-            this.bubble.innerHTML = this.responder.init_choose_unite;
-            this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), attrs, function (this: HTMLInputElement, e: Event) {
-                const code = (e.target as HTMLInputElement)?.value;
-                const unite = data.find(unite => unite.code == +code);
-                if (unite) {
-                    that.bubble.innerHTML = that.addUniteCard(unite, attrs);
-                    that.bubble.classList.remove('input-bubble');
-                    that.bubble.classList.add('message-received');
-                }
-            }));
+            this.typeMessage(this.bubble, this.responder.init_choose_unite, () => {
+                this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), attrs, function (this: HTMLInputElement, e: Event) {
+                    const code = (e.target as HTMLInputElement)?.value;
+                    const unite = data.find(unite => unite.code == +code);
+                    if (unite) {
+                        that.bubble.innerHTML = that.addUniteCard(unite, attrs);
+                        that.bubble.classList.remove('input-bubble');
+                        that.bubble.classList.add('message-received');
+                    }
+                }));
+            });
         }
     }
 
@@ -88,10 +92,13 @@ export default class {
         const nb_results = data.length;
         // Cas facile: aucun résultat
         if (!nb_results) {
-            this.bubble.innerHTML = this.responder.no_result;
+            this.typeMessage(this.bubble, this.responder.no_result);
             // Cas facile: 1 seul résultat
         } else if (nb_results == 1) {
-            this.bubble.innerHTML = this.addUserCard(data[0], attrs);
+            // @TODO: this.responder.one_user | this.responder.one_user_with_precisions
+            this.typeMessage(this.bubble, this.responder.one_user, () => {
+                this.bubble.innerHTML += this.addUserCard(data[0], attrs);
+            });
         } else {
 
             const that = this;
@@ -99,9 +106,9 @@ export default class {
 
             if (!this.isKnownUnite()) {
 
-                this.bubble.innerHTML = this.responder.init_many_results;
+                this.typeMessage(this.bubble, this.responder.init_many_results);
                 this.bubble = this.bubbleBuilder('input-bubble');
-                this.bubble.innerHTML = this.responder.init_ask_unite;
+                this.typeMessage(this.bubble, this.responder.init_ask_unite);
                 this.bubble.appendChild(this.addPrompt(function (this: HTMLInputElement, e: Event) {
                     localStorage.setItem(`${STORAGE_KEY}_unite`, this.value);
                     this_func.apply(that, [data, attrs]);
@@ -110,28 +117,33 @@ export default class {
             } else {
                 const userInSameUnite = data.find(user => user.code_unite == localStorage.getItem(`${STORAGE_KEY}_unite`))
                 if (userInSameUnite) {
-                    this.bubble.innerHTML = this.addUserCard(userInSameUnite, attrs);
+                    this.typeMessage(this.bubble, this.responder.one_user, () => {
+                        this.bubble.innerHTML += this.addUserCard(userInSameUnite, attrs);
+                    });
                 } else {
                     this.bubble.outerHTML = '';
                     this.bubble = this.bubbleBuilder('input-bubble');
-                    this.bubble.innerHTML = this.responder.init_choose_user;
-                    this.bubble.appendChild(this.addSelector(data.map(user => ({ id: user.id, label: `${user.prenom} ${user.nom.toUpperCase()}` })), attrs, function (this: HTMLInputElement, e: Event) {
-                        const value = (e.target as HTMLInputElement)?.value;
-                        const user = data.find(user => user.id == value);
-                        if (user) {
-                            that.bubble.innerHTML = that.addUserCard(user, attrs);
-                            that.bubble.classList.remove('input-bubble');
-                            that.bubble.classList.add('message-received');
-                        }
-                        // this_func.apply(that, [[user], attrs]);
-                    }));
+                    this.typeMessage(this.bubble, this.responder.init_choose_user, () => {
+                        this.bubble.appendChild(this.addSelector(data.map(user => ({ id: user.id, label: `${user.prenom} ${user.nom.toUpperCase()}` })), attrs, function (this: HTMLInputElement, e: Event) {
+
+                            const value = (e.target as HTMLInputElement)?.value;
+                            const user = data.find(user => user.id == value);
+                            if (user) {
+                                that.bubble.innerHTML = that.addUserCard(user, attrs);
+                                that.bubble.classList.remove('input-bubble');
+                                that.bubble.classList.add('message-received');
+                            }
+                            // this_func.apply(that, [[user], attrs]);
+                        }));
+                    });
+
                 }
             }
         }
     }
 
     public printUnknownMessage(): this {
-        this.bubble.innerHTML = this.responder.unknown;
+        this.typeMessage(this.bubble, this.responder.unknown);
         return this;
     }
 
@@ -148,7 +160,7 @@ export default class {
     }
 
     private addUniteCard(unite: Unite, attrs: string[]): string {
-        let message = this.responder.one_unite;
+
         let cardCls: string[] = [];
 
         // Traitement des demandes de TPH
@@ -170,7 +182,6 @@ export default class {
             cardCls = ['display-fixe', 'display-mail', 'display-adresse'];
 
         return /*html*/`
-        ${message}
         <div class="entity-card ${cardCls.join(' ')}" data-id="${unite.code}">
         <div class="entity-header" title="${unite.cn}">
             <span class="entity-code">${unite.code}</span>&nbsp;-
@@ -189,7 +200,7 @@ export default class {
     }
 
     private addUserCard(user: User, attrs: string[]): string {
-        let message = this.responder.one_user;
+
         let cardCls: string[] = [];
 
         // Traitement des demandes de TPH
@@ -201,9 +212,7 @@ export default class {
             if (terms.MOBILE_TERMS.find(attr => attrs.includes(attr))) {
                 cardCls.push('display-port');
             }
-            if (!cardCls.length) {
-                if (user.tph)
-                    message = this.responder.one_user_with_precisions;
+            if (!cardCls.length && user.tph) {
                 cardCls.push('display-fixe');
                 cardCls.push('display-port');
             }
@@ -223,7 +232,6 @@ export default class {
         }
 
         return /*html*/`
-        ${message}
         <div class="entity-card ${cardCls.join(' ')}" data-id="${user.id}">
         <div class="entity-header">
             <span class="entity-grade" title="${user.grade_long}">${user.grade}</span>&nbsp;
@@ -260,10 +268,10 @@ export default class {
 
     }
 
-    private addSelector(users: { id: string, label: string }[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
+    private addSelector(data: { id: string, label: string }[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
         const group = document.createElement('group')
         group.classList.add('column-radios');
-        users.forEach(({ id, label }) => {
+        data.forEach(({ id, label }) => {
             const div = document.createElement('div')
             const input = document.createElement('input')
             input.setAttribute('type', 'radio');
@@ -282,5 +290,30 @@ export default class {
 
 
         return group;
+    }
+
+    private typeMessage(element: HTMLElement, text: string, cb: Function | null = null) {
+        const max_duration = 1000;
+        const speed = this.speed * text.length > max_duration ? Math.round(max_duration / text.length) : this.speed;
+        const textSpan = element.querySelector('.text');
+        let i = 0;
+
+        function typeChar() {
+            if (i < text.length) {
+                if (textSpan === null)
+                    return;
+                textSpan.textContent += text.charAt(i); // Ajoute un char
+                textSpan.classList.add('visible'); // Rend visible avec la transition CSS
+                i++;
+                setTimeout(typeChar, speed);
+            } else {
+                // Fin du typing : virer la classe et le curseur
+                element.classList.remove('typing');
+                element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
+                cb && setTimeout(cb, 250); // Appel du callback s'il y en a un
+            }
+        }
+
+        typeChar(); // Lance le premier timeout
     }
 }
