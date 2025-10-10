@@ -37,7 +37,7 @@ class UniteRepository extends ServiceEntityRepository
     {
 
         $query = $this->createQueryBuilder('un')
-            ->select('un.code, un.name, adr.lat, adr.lng, un.name as label ')
+            ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.name LIKE :name")
             ->setParameter('name', $term . '%');

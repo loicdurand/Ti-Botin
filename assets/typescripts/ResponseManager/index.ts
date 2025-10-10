@@ -1,19 +1,27 @@
 import { normalizeAccents } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
+import { gridLayer } from 'leaflet';
 
 type Unite = {
     code: number,
     name: string,
+    cn: string, // Nom long
     lat: string,
     lng: string,
-    label: string // Nom de l'unité ou de la caserne si pls unités au même endroit
+    label: string, // Nom de l'unité ou de la caserne si pls unités au même endroit
+    subdivision: string,
+    capacite_judiciaire: number,
+    tph: string,
+    mail: string,
+    parent: string
 }
 
 type User = {
     code_unite: string,
     fonction: string,
     grade: string,
+    grade_long: string,
     id: string,
     mail: string,
     nom: string,
@@ -22,7 +30,8 @@ type User = {
     qualification: string,
     specificite: string,
     tph: string,
-    unite: string
+    unite: string,
+    statut_corps: string
 }
 
 // let index = 0;
@@ -163,13 +172,17 @@ export default class {
         return /*html*/`
         ${message}
         <div class="entity-card ${cardCls.join(' ')}" data-id="${unite.code}">
-        <div class="entity-header">
+        <div class="entity-header" title="${unite.cn}">
             <span class="entity-code">${unite.code}</span>&nbsp;-
             <strong>${unite.name}</strong>
         </div>
-        <div class="entity-contact" title="Mail: @TODO&#10;Téléphone: @TODO">
-            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;@TODO</div>
-            <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;@TODO</div>
+        <div class="entity-contact" title="Mail: ${unite.mail}&#10;Téléphone: ${unite.tph}">
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${unite.mail}</div>
+            <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${unite.tph}</div>
+        </div>
+        <div class="entity-other">
+            <div class="entity-attribute">Capacité judiciaire:&nbsp;<strong>${+unite.capacite_judiciaire ? 'OUI' : 'NON'}</strong></div>
+            <div class="entity-attribute">Subdivision:&nbsp;${unite.subdivision}</div>
         </div>
     </div>
     `;
@@ -208,11 +221,12 @@ export default class {
             'C': "Commandant d'unité",
             'A': "Commandant d'unité en second"
         }
+
         return /*html*/`
         ${message}
         <div class="entity-card ${cardCls.join(' ')}" data-id="${user.id}">
         <div class="entity-header">
-            <span class="entity-grade">${user.grade}</span>&nbsp;
+            <span class="entity-grade" title="${user.grade_long}">${user.grade}</span>&nbsp;
             <strong>${user.prenom} ${user.nom}</strong>
         </div>
         <div class="entity-details">
@@ -225,6 +239,10 @@ export default class {
             <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${user.mail}</div>
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${user.tph}</div>
             <div class="entity-attribute display-numero-port"><span class="entity-contact-icon">📱</span>&nbsp;${user.port}</div>
+        </div>
+        <div class="entity-other">
+            <div class="entity-attribute">Qualification:&nbsp;<strong>${user.qualification}</strong></div>
+            <div class="entity-attribute">Statut:&nbsp;${user.statut_corps}</div>
         </div>
     </div>
     `;
