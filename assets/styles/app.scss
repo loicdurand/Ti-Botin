@@ -46,10 +46,16 @@ body {
     right: 0;
     z-index: 400;
     max-width: 40%;
-    overflow-y: auto;
     background-color: rgba(0, 0, 0, 0.1);
+    padding-bottom: 1em;
 
     & .row {
+        overflow-y: auto;
+        height: 100%;
+
+        & .bubble:last-child {
+            margin-bottom: 5em;
+        }
 
         & .bubble {
             min-height: 3em;

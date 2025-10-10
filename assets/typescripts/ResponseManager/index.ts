@@ -311,7 +311,14 @@ export default class {
                 // Fin du typing : virer la classe et le curseur
                 element.classList.remove('typing');
                 element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
-                cb && setTimeout(cb, 250); // Appel du callback s'il y en a un
+                setTimeout(() => {
+                    const bubbleCtnr = document.querySelector('#bubble-container .row');
+                    bubbleCtnr && setTimeout(() => {
+                        bubbleCtnr.scrollTop = bubbleCtnr.scrollHeight;
+                    }, 300);
+                    cb && cb();
+
+                }, 300); // Appel du callback s'il y en a un
             }
         }
 
