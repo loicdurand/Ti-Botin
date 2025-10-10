@@ -163,7 +163,6 @@ export default class {
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${unite.tph}</div>
         </div>
         <div class="entity-other">
-            <div class="entity-attribute">Capacité judiciaire:&nbsp;<strong>${+unite.capacite_judiciaire ? 'OUI' : 'NON'}</strong></div>
             <div class="entity-attribute">Subdivision:&nbsp;${unite.subdivision}</div>
         </div>
     </div>
