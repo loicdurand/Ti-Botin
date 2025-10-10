@@ -33,6 +33,18 @@ class UniteRepository extends ServiceEntityRepository
         return $results;
     }
 
+    public function findByAdresseId($adresse_id)
+    {
+        // 
+        return $this->createQueryBuilder('un')
+            ->select('adr.lng, adr.lat, un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("adr.id = :id")
+            ->setParameter('id', $adresse_id)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByIdentifier($term, $city)
     {
         // 

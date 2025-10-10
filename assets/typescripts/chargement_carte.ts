@@ -39,9 +39,9 @@ export default async function (handleMarkerClick: Function) {
                 //icon: createNumberIcon(point.id)
             }).addTo(pointsLayer);
             if (point.label) {
-                marker.bindPopup(`<b>${point.label}</b><br>Lat: ${(+point.lat).toFixed(4)}, Lng: ${(+point.lng).toFixed(4)}`);
+                marker.bindPopup(`<b>${point.label}</b>`); //<br>Lat: ${(+point.lat).toFixed(4)}, Lng: ${(+point.lng).toFixed(4)}`);
             }
-            marker.on('click', () => handleMarkerClick(point.id));
+            marker.on('click', () => handleMarkerClick(point));
         });
     }
 

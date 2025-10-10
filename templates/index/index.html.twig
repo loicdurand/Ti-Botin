@@ -6,21 +6,19 @@
 
 {% block body %}
 
-	<div class="grid">
-		<div
-			class="chat-container row">
+	<div class="container">
+		<div class="chat-container row">
 
 			<!-- Sidebar gauche : signets -->
-			<aside class="sidebar col s3">
-				<h3>Signets Récents</h3>
-				<ul
-					id="signets-list" class="signets"><!-- Dynamique via JS -->
-				</ul>
-			</aside>
+			{# <aside class="sidebar col s3">
+																									<h3>Signets Récents</h3>
+																									<ul
+																										id="signets-list" class="signets"><!-- Dynamique via JS -->
+																									</ul>
+																								</aside> #}
 
-			<div
-				class="col s9 main-container">
-				<!-- Zone centrale : carte -->
+				<div
+				class="col s12 main-container"> <!-- Zone centrale : carte -->
 				<main class="main-content">
 					<div id="carte-container">
 						<div id="map"></div>
@@ -33,8 +31,12 @@
 
 				<!-- Footer : prompt -->
 				<footer class="prompt-bar">
-					<input type="text" id="prompt-input" value="donne le numéro de la br pap" placeholder="Interrogez l'annuaire..."/>
-					<button id="send-btn">Envoyer</button>
+					<input type="text" id="prompt-input" value="Donne-moi le numéro de la BR PAP, stp!" placeholder="Que recherchez-vous?"/>
+					<button id="send-btn" title="Envoyer">
+						<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" fill="currentColor">
+							<path d="M13.0001 7.82843V20H11.0001V7.82843L5.63614 13.1924L4.22192 11.7782L12.0001 4L19.7783 11.7782L18.3641 13.1924L13.0001 7.82843Z"></path>
+						</svg>
+					</button>
 				</footer>
 			</div>
 		</div>

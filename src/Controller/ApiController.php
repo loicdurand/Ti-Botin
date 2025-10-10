@@ -36,21 +36,23 @@ class ApiController extends AbstractController
     #[Route('/api/unite/{adresse_id}', name: 'export_api_adresse')]
     public function api_adresse(EntityManagerInterface $manager, string $adresse_id): Response
     {
-        $output = [];
-        $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
-        foreach ($unites as $unite) {
-            $adr = $unite->getAdresse();
-            $output[] = [
-                'id' => $unite->getId(),
-                'code' => $unite->getCode(),
-                'name' => $unite->getName(),
-                'lat' => $adr->getLat(),
-                'lon' => $adr->getLng(),
-                'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
+        // $output = [];
+        $unites = $manager->getRepository(Unite::class)->findByAdresseId($adresse_id);
+        return $this->json($unites);
+        // $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
+        // foreach ($unites as $unite) {
+        //     $adr = $unite->getAdresse(); 
+        //     $output[] = [
+        //         'id' => $unite->getId(),
+        //         'code' => $unite->getCode(),
+        //         'name' => $unite->getName(),
+        //         'lat' => $adr->getLat(),
+        //         'lon' => $adr->getLng(),
+        //         'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
 
-            ];
-        }
-        return $this->json($output);
+        //     ];
+        // }
+        // return $this->json($output);
     }
 
     #[Route('/api/chat-data', name: 'export_api_chatdata')]

@@ -8,16 +8,16 @@ body {
     padding: 0;
 }
 
-// #carte-container {
-//     height: 60%;
-//     width: 100%;
-//     position: relative;
-// }
+#carte-container {
+    // height: 60%;
+    // width: 100%;
+    position: relative;
+}
 
-// #map {
-//     height: 100%;
-//     width: 100%;
-// }
+#map {
+    height: 100%;
+    width: 100%;
+}
 
 .chat-container {
     border: 1px solid var(--grey-5);
@@ -29,8 +29,8 @@ body {
 
 .main-container {
     padding: 0;
-    min-width: 75%;
-    max-width: 75%;
+    min-width: 100%;
+    max-width: 100%;
 }
 
 /* Badge jaune pour surveillance */
@@ -126,7 +126,8 @@ body {
                     /* Cliquable pour zoom/action */
                     transition: background 0.2s;
 
-                    &:hover {
+                    &:hover,
+                    &.expanded {
                         background: #e0e0e0;
 
                         /* Hover pour feedback */
@@ -383,25 +384,54 @@ body {
 
 .prompt-bar {
     display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
     padding: 10px;
-    background: #fff;
-    border-top: 1px solid #ddd;
+    box-sizing: border-box;
     min-height: 8vh;
     max-height: 8vh;
+    background-color: var(--grey-9);
 }
 
 #prompt-input {
-    flex: 1;
-    padding: 10px;
+    margin-left: 60%;
+    width: 40%;
+    padding: 10px 40px 10px 15px;
+    /* Espace à droite pour le bouton */
+    border-radius: 50px;
     border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    height: 6vh;
+    font-style: italic;
 }
 
 #send-btn {
-    margin-left: 10px;
-    padding: 10px 20px;
-    background: #25d366;
-    color: white;
+    position: absolute;
+    right: 10px;
+    /* Position à l'intérieur de l'input */
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 12px;
+    /* Plus petit que l'input */
+    border-radius: 50px;
     border: none;
+    // background-color: #007bff;
+    background-color: var(--grey-7);
+    color: var(--grey-3);
+    font-size: 14px;
+    /* Légèrement plus petit */
+    cursor: pointer;
+    height: 5.5vh;
+    width: 5.5vh;
+    margin-right: .25vh;
+}
+
+#send-btn:hover {
+    // background-color: #0056b3;
+    background-color: var(--grey-9);
+    color: var(--grey-0);
 }
 
 @-webkit-keyframes fadeinout {

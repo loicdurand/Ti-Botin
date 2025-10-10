@@ -10,11 +10,11 @@
 		<!-- Leaflet CSS via CDN -->
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 		{# <link
-						rel="apple-touch-icon" href="{{ asset('/logo192.png') }}"/> #}
+														rel="apple-touch-icon" href="{{ asset('/logo192.png') }}"/> #}
 		<!--
-												      manifest.json provides metadata used when your web app is installed on a
-												      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-												    -->
+																				      manifest.json provides metadata used when your web app is installed on a
+																				      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+																				    -->
 		<link rel="manifest" href="{{ asset('/manifest.json') }}"/> <title>
 			{% block title %}Welcome!
 			{% endblock %}
@@ -29,7 +29,7 @@
 			{{ encore_entry_script_tags('app') }}
 		{% endblock %}
 	</head>
-	<body class="container-fluid"> {% block body %}{% endblock %}
-		</body>
-	</html>
-</head></html>
+	<body>
+		{% block body %}{% endblock %}
+	</body>
+</html></head></html>

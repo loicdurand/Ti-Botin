@@ -1,37 +1,7 @@
 import { normalizeAccents } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
-
-type Unite = {
-    code: number,
-    name: string,
-    cn: string, // Nom long
-    lat: string,
-    lng: string,
-    label: string, // Nom de l'unité ou de la caserne si pls unités au même endroit
-    subdivision: string,
-    capacite_judiciaire: number,
-    tph: string,
-    mail: string,
-    parent: string
-}
-
-type User = {
-    code_unite: string,
-    fonction: string,
-    grade: string,
-    grade_long: string,
-    id: string,
-    mail: string,
-    nom: string,
-    port: string,
-    prenom: string,
-    qualification: string,
-    specificite: string,
-    tph: string,
-    unite: string,
-    statut_corps: string
-}
+import { Unite, User } from '../types';
 
 // let index = 0;
 
@@ -57,7 +27,7 @@ export default class {
         return this;
     }
 
-    public printUniteMessage(data: Unite[], attrs: string[]) {
+    public printUniteMessage(data: Unite[], attrs: string[]): void {
         console.log({ data, attrs });
         this.bubble.classList.remove('loading');
         const nb_results = data.length;
