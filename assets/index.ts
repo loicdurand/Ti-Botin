@@ -6,7 +6,7 @@ import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/ChatAnalyser";
 import { Point } from './typescripts/types';
 
-import { User, Unite } from './typescripts/types';
+import { AnalysisResult, User, Unite } from './typescripts/types';
 
 // let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
@@ -115,7 +115,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const responsemanager = new ResponseManager(addBubbleToTUI);
       responsemanager.addLoader();
 
-      const analyzed = chat.analyzeMessage(message);
+      const analyzed: AnalysisResult = chat.analyzeMessage(message);
+
+      console.log(analyzed);
 
       if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
         const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
@@ -133,14 +135,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok)
         return false;
 
-      const data: User[] | Unite[] = await res.json();
+      const { type: response_type, data }: { type: string, data: User[] | Unite[] } = await res.json();
 
       console.log(data);
 
-      if (analyzed.type == "person") {
+      if (response_type == "person") {
         if (data.length === 1) chat.setContext(data[0] as User);
         responsemanager.printPersonMessage(data as User[], analyzed.attributes);
-      } else if (analyzed.type == "unite") {
+      } else if (response_type == "unite") {
         if (data.length === 1) chat.setContext(data[0] as Unite);
         responsemanager.printUniteMessage(data as Unite[], analyzed.attributes);
       } else {
@@ -150,33 +152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     input.value = '';
   }
-
-  // function addSignetToUI(unites: any[]) {
-  //   const signets = document.getElementById('signets-list');
-  //   const li = document.createElement('li');
-  //   li.className = 'signet-item';
-  //   const unite = unites[0];
-
-  //   if (unites.length == 1) {
-  //     li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-  //     li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-  //     signets?.insertBefore(li, signets.firstChild);
-  //   } else {
-  //     const h3 = document.createElement('h3');
-  //     h3.innerHTML = unite.label;
-  //     li.appendChild(h3);
-  //     const ul = document.createElement('ul');
-  //     unites.forEach(unite => {
-  //       const sub_li = document.createElement('li');
-  //       sub_li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-  //       sub_li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-  //       ul.appendChild(sub_li);
-  //     });
-  //     li.appendChild(ul);
-  //     signets?.insertBefore(li, signets.firstChild);
-
-  //   }
-  // }
 
   function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
     const bubbleCtnr = document.querySelector('#bubble-container .row');

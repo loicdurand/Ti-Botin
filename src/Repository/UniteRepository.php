@@ -45,6 +45,17 @@ class UniteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByCodeUnite($term)
+    {
+        return $this->createQueryBuilder('un')
+            ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.code = :term")
+            ->setParameter('term', $term)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByIdentifier($term, $city)
     {
         $query = $this->createQueryBuilder('un')

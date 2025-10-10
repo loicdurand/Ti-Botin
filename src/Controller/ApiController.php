@@ -81,15 +81,27 @@ class ApiController extends AbstractController
             $type = $data->type ?? $data->type;
             $term = $data->term ?? $data->term;
             $city = $data->city ?? $data->city;
+            $number = $data->number ?? $data->number;
+            $output = [
+                'type' => $type,
+                'data' => []
+            ];
 
-            if ($type === 'person') {
-                $persons = $manager->getRepository(User::class)->findByIdentity($term);
-                return $this->json($persons);
+
+            if ($type === 'number' && !is_null($number)) {
+                // Vu qu'un numéro peut être 6804 ou 31 11 88 ou 31.11.88 ou 311188, on commence par supprimer tout ce qui n'est pas un chiffre
+                $cleaned_number = preg_replace('/\D/', '', $number);
+                // Si moins de 5 chiffres, c'est probablement un code unité
+                if (strlen($cleaned_number) <= 5) {
+                    $output['type'] = 'unite';
+                    $output['data'] = $manager->getRepository(Unite::class)->findByCodeUnite(intval($cleaned_number));
+                }
+            } else if ($type === 'person') {
+                $output['data'] = $manager->getRepository(User::class)->findByIdentity($term);
             } else if ($type === 'unite') {
-                $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
-                return $this->json($unites);
+                $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
             }
-            return $this->json([]);
+            return $this->json($output);
             // $attributes = $data['attributes'] ?? null;
         } catch (\Throwable $th) {
             return $this->json([
