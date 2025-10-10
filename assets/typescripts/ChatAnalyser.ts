@@ -1,8 +1,7 @@
 import nlp from 'compromise';
 import utils from './utils';
 
-type Words = { [key: string]: string }
-type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name';
+import { Words, Category, User, Unite } from './types';
 
 export default class Chat {
     private aliasses: Record<Category, { value: string, aliasses: string[] }[]> = {
@@ -15,7 +14,18 @@ export default class Chat {
     private words: Words = {};
     private nlp = nlp;
 
+    private context: User | Unite | null = null;
+
     constructor() {
+        return this;
+    }
+
+    public getContext() {
+        return this.context;
+    }
+
+    public setContext(context: User | Unite) {
+        this.context = context;
         return this;
     }
 
