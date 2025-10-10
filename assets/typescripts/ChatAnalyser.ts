@@ -110,6 +110,7 @@ export default class Chat {
             utils.string.normalizeAccents,
             // (q: string) => q.toLowerCase(),
             (q: string) => q.replaceAll("'", ' '),
+            (q: string) => q.replaceAll(",", ' '),
             (q: string) => q.replaceAll(/[\?\.]?$/g, '')
         )(query);
     }

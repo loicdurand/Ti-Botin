@@ -3,7 +3,7 @@ import { getParent } from './typescripts/utils/document';
 import * as terms from './typescripts/lexic';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
 import ResponseManager from "./typescripts/ResponseManager";
-import Chat from "./typescripts/chat";
+import Chat from "./typescripts/ChatAnalyser";
 import { Point } from './typescripts/types';
 
 // let signets: Set<number> = new Set();  // IDs des signets (simule session)
@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const target = e.target as HTMLElement;
     if (!target)
       return;
+
+    console.log(target);
     if (target.matches('.entity-card *')) {
       const bubble = getParent(target, '.bubble') as HTMLElement;
-      console.log(target, bubble);
-
       const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
       entity_card.classList.toggle('expanded');
     }

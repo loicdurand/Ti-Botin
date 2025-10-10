@@ -1,11 +1,42 @@
 @use './starter-complet';
 @use './sidebar.scss';
 
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+body {
+    overflow: hidden;
+
+    background: linear-gradient(135deg, #424242 0%, #2a2a2a 50%, #1a1a1a 100%);
+    background-size: 200% 200%;
+    animation: gradientFlow 10s ease infinite;
+    /* Pour contraste avec le fond sombre */
+    min-height: 100vh;
+    /* Assure que le fond couvre toute la hauteur */
+    margin: 0;
+    /* Supprime les marges par défaut */
+
+}
+
 html,
 body {
     height: 90vh;
-    margin: 0;
     padding: 0;
+
+    & .container-fluid {
+        padding: 0;
+    }
 }
 
 #carte-container {
@@ -21,6 +52,9 @@ body {
 
 .chat-container {
     border: 1px solid var(--grey-5);
+    height: 100vh;
+    overflow: hidden;
+    background: var(--grey-9);
 }
 
 .surveillance {
@@ -35,12 +69,12 @@ body {
 
 /* Badge jaune pour surveillance */
 .main-content {
-    height: 84vh;
+    height: 90vh;
     position: relative;
 }
 
 #bubble-container {
-    height: 84vh;
+    height: 90vh;
     position: absolute;
     top: 0;
     right: 0;
