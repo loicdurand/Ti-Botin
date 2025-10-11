@@ -81,32 +81,65 @@ class ApiController extends AbstractController
             $type = $data->type ?? $data->type;
             $term = $data->term ?? $data->term;
             $city = $data->city ?? $data->city;
-            $number = $data->number ?? $data->number;
             $output = [
                 'type' => $type,
                 'data' => []
             ];
 
-
-            if ($type === 'number' && !is_null($number)) {
-                // Vu qu'un numéro peut être 6804 ou 31 11 88 ou 31.11.88 ou 311188, on commence par supprimer tout ce qui n'est pas un chiffre
-                $cleaned_number = preg_replace('/\D/', '', $number);
-                // Si moins de 5 chiffres, c'est probablement un code unité
-                if (strlen($cleaned_number) <= 5) {
-                    $output['type'] = 'unite';
-                    $output['data'] = $manager->getRepository(Unite::class)->findByCodeUnite(intval($cleaned_number));
-                }
-            } else if ($type === 'person') {
+            if ($type === 'person') {
                 $output['data'] = $manager->getRepository(User::class)->findByIdentity($term);
             } else if ($type === 'unite') {
                 $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
             }
             return $this->json($output);
-            // $attributes = $data['attributes'] ?? null;
         } catch (\Throwable $th) {
             return $this->json([
                 'error' => $th
             ]);
         }
+    }
+
+    #[Route('/api/find-by-number', name: 'export_api_find_by_number')]
+    public function api_find_by_number(Request $request, EntityManagerInterface $manager): Response
+    {
+        $output = [];
+        $data = $request->query->get('q') ?? $request->request->get('q');
+        // try {
+        $data = json_decode($data);
+        $numeroNettoye = $data->number ? $this->nettoyerTelephone($data->number) : 'Z';
+
+        if (strlen($numeroNettoye) < 6) { // si moins de 6 chiffres, c'est un code unité
+            $output[] = [
+                'type' => 'unite',
+                'data' => $manager->getRepository(Unite::class)->findByCodeUnite(intval($numeroNettoye))
+            ];
+            return $this->json($output);
+        } else {
+            // si n° de téléphone, on garde les 9 derniers chiffres
+            // on ne s'embête pas avec l'indicatif pays ou le 1er zéro
+            $numeroNettoye = strlen($numeroNettoye) > 8 ? substr($numeroNettoye, -9) : $numeroNettoye;
+
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'unite',
+                'data' => $manager->getRepository(Unite::class)->findByPhone($numeroNettoye)
+            ];
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'person',
+                'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
+            ];
+            return $this->json($output);
+        }
+        // } catch (\Throwable $th) {
+        //     return $this->json([
+        //         'error' => $th
+        //     ]);
+        // }
+    }
+
+    private function nettoyerTelephone($telephone)
+    {
+        return preg_replace('/[^0-9]|\s/', '', $telephone);
     }
 }

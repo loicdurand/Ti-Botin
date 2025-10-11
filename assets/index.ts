@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
   });
 
-  async function handleSendEvent() {
+  async function handleSendEvent(): Promise<void> {
 
     const message = input.value.trim();
     if (!message) return;
@@ -119,14 +119,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       console.log(analyzed);
 
-      if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
-        const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
-        analyzed.type = type;
-        analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
-      }
-
       // Fetch recherche API
-      const res = await fetch('/export/api/search', {
+      const fetch_url = analyzed.type === 'number' ? '/export/api/find-by-number' : '/export/api/search';
+      const res = await fetch(fetch_url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
@@ -135,7 +130,33 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok)
         return false;
 
-      const { type: response_type, data }: { type: string, data: User[] | Unite[] } = await res.json();
+      let json = await res.json();
+
+      if (analyzed.type === 'number') {
+
+        const results: ({ type: string, data: User[] | Unite[] })[] = json.filter((result: { type: string, data: User[] | Unite[] }) => result.data.length > 0);
+
+        if (results.length === 1) {
+          json = results[0];
+        } else {
+
+          results.forEach(result => {
+            const { type: response_type, data }: { type: string, data: User[] | Unite[] } = result;
+            console.log({ response_type, data });
+          });
+
+          return;
+
+        }
+      }
+
+      if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
+        const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
+        analyzed.type = type;
+        analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
+      }
+
+      const { type: response_type, data }: { type: string, data: User[] | Unite[] } = json;
 
       console.log(data);
 
@@ -148,6 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         responsemanager.printUnknownMessage();
       }
+
     }, 1000);
 
     input.value = '';

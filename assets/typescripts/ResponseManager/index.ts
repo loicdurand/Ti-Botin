@@ -155,7 +155,7 @@ export default class {
         return /*html*/`
         <div class="entity-card ${cardCls.join(' ')}" data-id="${unite.code}">
         <div class="entity-header" title="${unite.cn}">
-            <span class="entity-code">${unite.code}</span>&nbsp;-
+            <span class="entity-code">${unite.code}</span>&nbsp;-&nbsp
             <strong>${unite.name}</strong>
         </div>
         <div class="entity-contact" title="Mail: ${unite.mail}&#10;Téléphone: ${unite.tph}">
