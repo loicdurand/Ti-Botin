@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     }, 1000);
 
-    input.value = '';
+    // input.value = '';
   }
 
   function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {

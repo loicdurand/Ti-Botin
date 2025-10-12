@@ -1,4 +1,4 @@
-import { normalizeAccents } from '../utils/str';
+import { normalizeAccents, pluralize } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 import { Unite, User } from '../types';
@@ -33,13 +33,23 @@ export default class {
         // Ici, on a des résultats de différents types à afficher.
         // En 1er, on va s'occuper d'afficher les unités.
         // On commence par un petit message d'intro, 
-        this.typeMessage(this.bubble, this.responder.no_result);
+        this.typeMessage(this.bubble, this.responder.message_intro, () => {
 
-        // On met ensuite un titre, pour bien distinguer les sections.
-        const uniteResults = results.find(result => result.type == 'unite');
-        if (uniteResults) {
+            // On décortique les résultats concernant les unités
+            const uniteResults = results.find(({ type }) => type === 'unite')?.data as Unite[];
+            if (uniteResults) {
+                const len = uniteResults ? uniteResults.length : 0;
+                // On met ensuite un titre, pour bien distinguer les sections.
+                this.bubble.innerHTML += `
+                <h3>1. ${pluralize(len, 'Unité')}</h3>
+                <span class="text"></span>`;
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                this.printUniteMessage(uniteResults, attrs);
+            }
 
-        }
+        });
+
+
 
 
 

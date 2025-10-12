@@ -79,14 +79,14 @@ class UniteRepository extends ServiceEntityRepository
         return $unites;
     }
 
-    public function findByPhone($numeroNettoye)
+    public function findByPhoneOrCodeUnite($numeroNettoye)
     {
         $sql = "
             SELECT un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capacite_judiciaire, un.telephone_number as tph, un.mail 
             FROM unite un
             INNER JOIN adresse adr ON un.adresse_id = adr.id 
-            WHERE REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '') 
-            LIKE :suffixe
+            WHERE REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '') LIKE :suffixe
+            OR un.code LIKE :suffixe
         ";
 
         $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye"]); // . $numeroNettoye]);
