@@ -30,7 +30,8 @@ export type Unite = {
     capacite_judiciaire: number,
     tph: string,
     mail: string,
-    parent: string
+    parent: string,
+    found_column: string // Indique si personne trouvée par son TPH, mobile,
 }
 
 export type User = {

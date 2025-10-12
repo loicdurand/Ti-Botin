@@ -35,6 +35,7 @@ export default class {
         // On commence par un petit message d'intro, 
         this.typeMessage(this.bubble, this.responder.message_intro, () => {
 
+            this.bubble.querySelector('.text')?.classList.remove('text');
             // On décortique les résultats concernant les unités
             const uniteResults = results.find(({ type }) => type === 'unite')?.data as Unite[];
             if (uniteResults) {
@@ -43,7 +44,10 @@ export default class {
                 this.bubble.innerHTML += `
                 <h3>1. ${pluralize(len, 'Unité')}</h3>
                 <span class="text"></span>`;
-                this.bubble.querySelector('.text')?.classList.remove('text');
+                this.responder.varied_results_unite = {
+                    len: uniteResults.length,
+                    columns: uniteResults.map(u => u.found_column)
+                };
                 this.printUniteMessage(uniteResults, attrs);
             }
 

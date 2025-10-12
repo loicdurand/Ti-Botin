@@ -1,4 +1,12 @@
+import matchers from "@testing-library/jest-dom/types/matchers";
+import { pluralize } from "../utils/str";
+
 const hints = {
+
+    context: {
+        current: null,
+        args: null
+    },
 
     // Pas de résultat
     unknown_hints: [
@@ -77,7 +85,23 @@ const hints = {
         "Votre recherche a donné plusieurs types de résultats. Je vais vous les présenter en séparant unités et personnes.",
         "Vos critères ont donné plusieurs types de résulats. Je vous les présente ci-dessous:",
         "Cette recherche a donné des résulats qui portent sur des unités et des personnes. Je vous détaille ça en dessous."
-    ]
+    ],
+    // Résultats variés (unités et personnes)
+    varied_results_unite_hints: (args: { len: number, columns: string[] }) => {
+        const n = args.len;
+        const cols = args.columns.map(col => {
+            switch (col) {
+                case 'telephone_number': return pluralize(n, 'le numéro', 'les numéros') + ' de téléphone';
+                case 'code': return pluralize(n, 'le code', 'les codes');
+                default: return false;
+            }
+        }).filter(Boolean).join(' et ');
+
+        return [
+            `J'ai trouvé ${n} ${pluralize(n, 'unité')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
+            `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'cette unité', 'ces unités')}:`
+        ];
+    }
 
 };
 
@@ -101,13 +125,30 @@ hints.one_unite_hints = [
     ...hints.one_result_hints, ...hints.one_unite_hints
 ];
 
+
 const responder = {
 
     ...hints,
 
     get(target: any, prop: string) {
-        const max = target[`${prop}_hints`].length - 1;
-        return target[`${prop}_hints`][this.randomIntFromInterval(0, max)];
+        let target_hints = target[`${prop}_hints`];
+        if (target.context !== null) {
+            switch (target.context.current) {
+                case 'varied_results_unite':
+                    target_hints = target.varied_results_unite_hints(target.context.args);
+                    break;
+                default:
+                    break;
+            }
+        }
+        const max = target_hints.length - 1;
+        return target_hints[this.randomIntFromInterval(0, max)];
+    },
+
+    set(target: any, prop: string, value: any) {
+        target.context.current = prop;
+        target.context.args = value;
+        return true;
     },
 
     randomIntFromInterval(min: number, max: number) { // min and max included 
