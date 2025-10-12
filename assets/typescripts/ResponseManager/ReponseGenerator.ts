@@ -16,6 +16,12 @@ const hints = {
         "plaît-il?",
         "Pourriez-vous reformuler votre demande, s'il vous plaît?"
     ],
+    error_hints: [
+        "Votre recherche amène un résultat pour le moins... surprenant. Pouvez-vous préciser ce que vous recherchez?",
+        "J'ai besoin de davantage de précisisions. Les termes que vous avez saisis ne me suffisent pas à vous apporter une réponse",
+        "Désolé, j'ai besoin que vous complétiez votre demande.",
+        "Je comprends les termes que vous avez saisis mais la réponse renvoyée par le serveur est surprenante. Pourriez-vous reformuler?"
+    ],
     no_result_hints: [
         "Je n'ai trouvé aucun résultat.Êtes-vous sûr de votre saisie?",
         "Aïe! Je n'ai pas trouvé de réponse pour vous...",
@@ -101,6 +107,22 @@ const hints = {
             `J'ai trouvé ${n} ${pluralize(n, 'unité')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
             `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'cette unité', 'ces unités')}:`
         ];
+    },
+
+    varied_results_user_hints: (args: { len: number, columns: string[] }) => {
+        const n = args.len;
+        const cols = args.columns.map(col => {
+            switch (col) {
+                case 'tph': return pluralize(n, 'le numéro de fixe', 'les numéros de fixe') + ' de téléphone';
+                case 'port': return pluralize(n, 'le numéro de portable', 'les numéros de portable');
+                default: return false;
+            }
+        }).filter(Boolean).join(' et ');
+
+        return [
+            `J'ai trouvé ${n} ${pluralize(n, 'personnels')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
+            `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'ce personnel', 'ces personnels')}:`
+        ];
     }
 
 };
@@ -132,14 +154,18 @@ const responder = {
 
     get(target: any, prop: string) {
         let target_hints = target[`${prop}_hints`];
-        if (target.context !== null) {
+        if (target.context.current !== null) {
             switch (target.context.current) {
                 case 'varied_results_unite':
                     target_hints = target.varied_results_unite_hints(target.context.args);
                     break;
+                case 'varied_results_user':
+                    target_hints = target.varied_results_user_hints(target.context.args);
+                    break;
                 default:
                     break;
             }
+            target.context.current = null;
         }
         const max = target_hints.length - 1;
         return target_hints[this.randomIntFromInterval(0, max)];

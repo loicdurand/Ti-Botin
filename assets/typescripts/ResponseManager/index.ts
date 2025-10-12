@@ -28,70 +28,85 @@ export default class {
     }
 
     public printVariedResultsMessage(results: ({ type: string, data: User[] | Unite[] })[], attrs: string[]) {
-        console.log(results);
+
+        if (results.filter(({ data }) => data.length).length === 0)
+            return this.printErrorMessage();
+
         this.bubble.classList.remove('loading');
         // Ici, on a des résultats de différents types à afficher.
         // En 1er, on va s'occuper d'afficher les unités.
         // On commence par un petit message d'intro, 
-        this.typeMessage(this.bubble, this.responder.message_intro, () => {
+        this.typeMessage(this.bubble, this.responder.message_intro, async () => {
 
             this.bubble.querySelector('.text')?.classList.remove('text');
             // On décortique les résultats concernant les unités
             const uniteResults = results.find(({ type }) => type === 'unite')?.data as Unite[];
-            if (uniteResults) {
-                const len = uniteResults ? uniteResults.length : 0;
-                // On met ensuite un titre, pour bien distinguer les sections.
-                this.bubble.innerHTML += `
+
+            let len = uniteResults ? uniteResults.length : 0;
+            // On met ensuite un titre, pour bien distinguer les sections.
+            this.bubble.innerHTML += `
                 <h3>1. ${pluralize(len, 'Unité')}</h3>
                 <span class="text"></span>`;
-                this.responder.varied_results_unite = {
-                    len: uniteResults.length,
-                    columns: uniteResults.map(u => u.found_column)
-                };
-                this.printUniteMessage(uniteResults, attrs);
-            }
+            this.responder.varied_results_unite = {
+                len: uniteResults.length,
+                columns: uniteResults.map(u => u.found_column)
+            };
+
+            await this.printUniteMessage(uniteResults, attrs);
+
+            // // On passe à l'affichage des utilisateurs
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            this.bubble.innerHTML += `
+                <h3>2. ${pluralize(len, 'Personnel')}</h3>
+                <span class="text"></span>`;
+            const personResults = results.find(({ type }) => type === 'person')?.data as User[];
+            len = personResults ? personResults.length : 0;
+            // On met un nouveau titre.
+
+            this.responder.varied_results_user = {
+                len: personResults.length,
+                columns: personResults.map(u => u.found_column)
+            };
+            this.printPersonMessage(personResults, attrs);
 
         });
 
-
-
-
-
-
-        // On passe aux personnes
-        const personResults = results.find(result => result.type == 'person');
-
-
     }
 
-    public printUniteMessage(data: Unite[], attrs: string[]): void {
-        console.log({ data, attrs });
-        this.bubble.classList.remove('loading');
-        const nb_results = data.length;
-        // Cas facile: aucun résultat
-        if (!nb_results) {
-            this.typeMessage(this.bubble, this.responder.no_unite);
-            // Cas facile: 1 seul résultat
-        } else if (nb_results == 1) {
-            this.typeMessage(this.bubble, this.responder.one_unite, () => {
-                this.bubble.innerHTML += this.addUniteCard(data[0], attrs);
-            });
-        } else {
-            const that = this;
-            this.bubble.outerHTML = '';
-            this.bubble = this.bubbleBuilder('input-bubble');
-            this.typeMessage(this.bubble, this.responder.init_choose_unite, () => {
-                this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), attrs, function (this: HTMLInputElement, e: Event) {
-                    const code = (e.target as HTMLInputElement)?.value;
-                    const unite = data.find(unite => unite.code == +code);
-                    if (unite) {
-                        that.bubble.innerHTML = that.addUniteCard(unite, attrs);
-                        that.bubble.classList.remove('input-bubble');
-                        that.bubble.classList.add('message-received');
-                    }
-                }));
-            });
-        }
+    public async printUniteMessage(data: Unite[], attrs: string[]): Promise<void> {
+
+        return new Promise((resolve) => {
+            console.log({ data, attrs });
+            this.bubble.classList.remove('loading');
+            const nb_results = data.length;
+            // Cas facile: aucun résultat
+            if (!nb_results) {
+                this.typeMessage(this.bubble, this.responder.no_unite);
+                resolve(void 0);
+                // Cas facile: 1 seul résultat
+            } else if (nb_results == 1) {
+                this.typeMessage(this.bubble, this.responder.one_unite, () => {
+                    this.bubble.innerHTML += this.addUniteCard(data[0], attrs);
+                    resolve(void 0);
+                });
+            } else {
+                const that = this;
+                this.bubble.outerHTML = '';
+                this.bubble = this.bubbleBuilder('input-bubble');
+                this.typeMessage(this.bubble, this.responder.init_choose_unite, () => {
+                    this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), attrs, function (this: HTMLInputElement, e: Event) {
+                        const code = (e.target as HTMLInputElement)?.value;
+                        const unite = data.find(unite => unite.code == +code);
+                        if (unite) {
+                            that.bubble.innerHTML = that.addUniteCard(unite, attrs);
+                            that.bubble.classList.remove('input-bubble');
+                            that.bubble.classList.add('message-received');
+                        }
+                    }));
+                    resolve(void 0);
+                });
+            }
+        });
     }
 
     public printPersonMessage(data: User[], attrs: string[]) {
@@ -152,6 +167,12 @@ export default class {
     public printUnknownMessage(): this {
         this.bubble.classList.remove('loading');
         this.typeMessage(this.bubble, this.responder.unknown);
+        return this;
+    }
+
+    public printErrorMessage(): this {
+        this.bubble.classList.remove('loading');
+        this.typeMessage(this.bubble, this.responder.error);
         return this;
     }
 

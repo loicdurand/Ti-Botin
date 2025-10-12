@@ -31,7 +31,7 @@ export type Unite = {
     tph: string,
     mail: string,
     parent: string,
-    found_column: string // Indique si personne trouvée par son TPH, mobile,
+    found_column: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
 }
 
 export type User = {
@@ -48,7 +48,11 @@ export type User = {
     specificite: string,
     tph: string,
     unite: string,
-    statut_corps: string
+    statut_corps: string,
+    found_column: (
+        'code' | 'telephone_number' // si unité trouvée par son TPH ou code unite
+        | 'tph' | 'port' | 'other'
+    ) //  ou personnel trouvé par son nigend, son n° de fixe ou mobile ou code unite,
 }
 
 export type FetchResult = {
