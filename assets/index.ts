@@ -6,7 +6,7 @@ import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/ChatAnalyser";
 import { Point } from './typescripts/types';
 
-import { AnalysisResult, User, Unite } from './typescripts/types';
+import { AnalysisResult, User, Unite, FetchResult } from './typescripts/types';
 
 // let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
@@ -134,16 +134,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (analyzed.type === 'number') {
 
-        const results: ({ type: string, data: User[] | Unite[] })[] = json.filter((result: { type: string, data: User[] | Unite[] }) => result.data.length > 0);
+        const results: FetchResult[] = json.filter((result: FetchResult) => result.data.length > 0);
 
         if (results.length === 1) {
           json = results[0];
         } else {
 
-          results.forEach(result => {
-            const { type: response_type, data }: { type: string, data: User[] | Unite[] } = result;
-            console.log({ response_type, data });
-          });
+          responsemanager.printVariedResultsMessage(results, analyzed.attributes);
 
           return;
 
@@ -156,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
       }
 
-      const { type: response_type, data }: { type: string, data: User[] | Unite[] } = json;
+      const { type: response_type, data }: FetchResult = json;
 
       console.log(data);
 

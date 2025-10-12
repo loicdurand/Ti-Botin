@@ -84,7 +84,11 @@ class UserRepository extends ServiceEntityRepository
             SELECT un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statut_corps, u.tph, u.port, u.mail, u.qualification 
             FROM user u
             INNER JOIN unite un ON u.unite_id = un.id 
-            WHERE REPLACE(REPLACE(u.tph, ' ', ''), '+', '') LIKE :suffixe
+            WHERE (
+                REPLACE(REPLACE(u.tph, ' ', ''), '+', '') LIKE :suffixe
+                AND 
+                REPLACE(REPLACE(u.tph, ' ', ''), '+', '') != REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '')
+            )
             OR REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe
         ";
 

@@ -13,7 +13,7 @@ export default class {
 
     private bubbleBuilder: Function;
     private bubble: HTMLElement;
-    private responder = new ReponseGenerator();
+    private responder = ReponseGenerator;
 
     constructor(bubbleBuilderFunction: (sens: "sent" | "received") => HTMLElement) {
         this.bubbleBuilder = bubbleBuilderFunction;
@@ -25,6 +25,29 @@ export default class {
         // affiche "chargement en cours..."
         this.addEmptySpans();
         return this;
+    }
+
+    public printVariedResultsMessage(results: ({ type: string, data: User[] | Unite[] })[], attrs: string[]) {
+        console.log(results);
+        this.bubble.classList.remove('loading');
+        // Ici, on a des résultats de différents types à afficher.
+        // En 1er, on va s'occuper d'afficher les unités.
+        // On commence par un petit message d'intro, 
+        this.typeMessage(this.bubble, this.responder.no_result);
+
+        // On met ensuite un titre, pour bien distinguer les sections.
+        const uniteResults = results.find(result => result.type == 'unite');
+        if (uniteResults) {
+
+        }
+
+
+
+
+        // On passe aux personnes
+        const personResults = results.find(result => result.type == 'person');
+
+
     }
 
     public printUniteMessage(data: Unite[], attrs: string[]): void {

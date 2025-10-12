@@ -17,6 +17,8 @@ export type Point = {
     lng: string
 };
 
+// Définition des types retournés par les fetchs
+
 export type Unite = {
     code: number,
     name: string,
@@ -46,4 +48,9 @@ export type User = {
     tph: string,
     unite: string,
     statut_corps: string
+}
+
+export type FetchResult = {
+    type: 'person' | 'unite';
+    data: User[] | Unite[];
 }
