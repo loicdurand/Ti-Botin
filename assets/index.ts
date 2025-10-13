@@ -123,9 +123,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       responsemanager.addLoader();
 
       const analyzed: AnalysisResult = chat.analyzeMessage(message);
-      if (analyzed.type == "unknown" && chat?.getContext()?.hasOwnProperty('name'))
+      if (analyzed.type == "unknown" && chat?.getContext()?.hasOwnProperty('name')) {
         analyzed.type = 'unite';
-
+        analyzed.term = (chat?.getContext() as Unite)?.name
+      }
       console.log(analyzed);
 
       // Fetch recherche API
