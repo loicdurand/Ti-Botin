@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     { value: `comgend${deptLettres[deptCode]}`, aliasses: ['comgend'] }
   ];
 
+  const fonction_terms = Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat();
+
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
@@ -89,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ...terms.TELEPHONE_TERMS,
       ...terms.MAIL_TERMS,
       ...terms.ADRESSE_TERMS,
-      ...Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat()
+      ...fonction_terms
     ], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
@@ -121,6 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       responsemanager.addLoader();
 
       const analyzed: AnalysisResult = chat.analyzeMessage(message);
+      if (analyzed.type == "unknown" && chat?.getContext()?.hasOwnProperty('name'))
+        analyzed.type = 'unite';
 
       console.log(analyzed);
 
@@ -154,16 +158,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
         const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
+        console.log({ type });
         analyzed.type = type;
         analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
       }
 
       const { type: response_type, data }: FetchResult = json;
 
-      console.log(data);
-
       if (response_type == "person") {
-        if (data.length === 1) chat.setContext(data[0] as User);
+        if (data.length === 1) {
+          if (analyzed.attributes.filter(attr => fonction_terms.includes(attr))) {
+            console.log('ici');
+            chat.setContext({ name: (data[0] as User).unite } as Unite);
+          } else {
+            chat.setContext(data[0] as User);
+          }
+        }
         responsemanager.printPersonMessage(data as User[], analyzed.attributes);
       } else if (response_type == "unite") {
         if (data.length === 1) chat.setContext(data[0] as Unite);
@@ -171,6 +181,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         responsemanager.printUnknownMessage();
       }
+
+      console.log({ data, context: chat.getContext() });
 
     }, 1000);
 
