@@ -132,28 +132,32 @@ class UserRepository extends ServiceEntityRepository
         return $persons;
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findListeOf($code_unite, $liste)
+    {
+        /*
+         Ex: $liste = [
+            'tous' => ['liste', 'list', 'tableau', 'table', 'personnels'],
+            'statut' => ['militaires', 'civils'],
+            'qualification' => ['opj', 'apj', 'apja']
+        ]
+         */
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $query = $this->createQueryBuilder('u')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->innerJoin('u.unite', 'un')
+            ->andWhere("un.code = :code")
+            ->setParameter('code', $code_unite);
+
+        if (!empty($liste['statut'])) {
+            $statut = $liste['statut'];
+            $query->andWhere("u.statutCorps IN (:statut)")
+                ->setParameter('statut', implode(',', $statut));
+        }
+
+        $persons = $query
+            ->getQuery()
+            ->getResult();
+
+        return $persons;
+    }
 }

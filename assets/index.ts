@@ -26,12 +26,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const map = await chargement_de_la_carte(handleMarkerClick);
 
-  // function markAsSurveilled(id: number) {
-  //   // Ex: Ajoute classe ou badge
-  //   const item = document.querySelector(`[onclick*="setView"]`);  // À raffiner
-  //   if (item) item.classList.add('surveillance');
-  // }
-
   async function handleMarkerClick(point: Point) {
     const { id: adresse_id, label } = point;
     const sent_bubble = addBubbleToTUI('sent');
@@ -49,15 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     map.setView([+unites[0].lat, +unites[0].lng], 11)
     responsemanager.printUniteMessage(unites, []);
-
-    // Ajoute signet si absent
-    // if (!signets.has(adresse_id)) {
-    //   signets.add(adresse_id);
-    //   addSignetToUI(unites);
-    // }
-
-    // Marque en surveillance (update UI)
-    // markAsSurveilled(adresse_id);
 
   }
 
@@ -83,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ];
 
   const fonction_terms = Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat();
+  const liste_terms = Object.keys(chat_data.liste_terms).map(key => chat_data.liste_terms[key]).flat();
 
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
@@ -95,6 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
+    .addWords(liste_terms, 'Liste')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
 
@@ -128,6 +115,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         analyzed.term = (chat?.getContext() as Unite)?.name
       }
       console.log(analyzed);
+
+      // Si la demande concerne une liste de personnels,
+      // on traite ça dans une autre fonction "getListeOf"
+      if (analyzed.liste)
+        return getListeOf(analyzed, responsemanager);
 
       // Fetch recherche API
       const fetch_url = analyzed.type === 'number' ? '/export/api/find-by-number' : '/export/api/search';
@@ -187,31 +179,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     }, 1000);
 
-    // input.value = '';
+    //input.value = '';
   }
 
-  function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
-    const bubbleCtnr = document.querySelector('#bubble-container .row');
-    const bubble = document.createElement('div');
-    bubble.classList.add('bubble');
 
-
-
-    if (sens === 'received' || sens === 'input-bubble')
-      bubble.classList.add('typing');
-    if (sens === 'input-bubble') {
-      bubble.classList.add('input-bubble');
-      bubble.classList.add('received');
-    } else {
-      bubble.classList.add(`message-${sens}`);
-    }
-    const span = document.createElement('span');
-    span.classList.add('text');
-    bubble.appendChild(span);
-    bubbleCtnr?.appendChild(bubble);
-    return bubble;
-
-  }
 
 
 });
+
+async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseManager) {
+  // Fetch recherche API
+  const fetch_url = '/export/api/get-list-of';
+  const res = await fetch(fetch_url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
+  });
+
+  if (!res.ok)
+    return false;
+
+  let json = await res.json();
+  console.log({ json });
+
+  //responsemanager.printListeMessage(data as Unite[], analyzed.attributes);
+}
+
+function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
+  const bubbleCtnr = document.querySelector('#bubble-container .row');
+  const bubble = document.createElement('div');
+  bubble.classList.add('bubble');
+
+  if (sens === 'received' || sens === 'input-bubble')
+    bubble.classList.add('typing');
+  if (sens === 'input-bubble') {
+    bubble.classList.add('input-bubble');
+    bubble.classList.add('received');
+  } else {
+    bubble.classList.add(`message-${sens}`);
+  }
+  const span = document.createElement('span');
+  span.classList.add('text');
+  bubble.appendChild(span);
+  bubbleCtnr?.appendChild(bubble);
+  return bubble;
+
+}

@@ -20,6 +20,12 @@ class ApiController extends AbstractController
         'adjoint' => ['c2', 'adjoint', 'cba', 'cbra', 'cdua']
     ];
 
+    private $liste_terms = [
+        'tous' => ['liste', 'list', 'tableau', 'table', 'personnels'],
+        'statut' => ['militaires', 'militaire', 'civils', 'civil'],
+        'qualification' => ['opj', 'apj', 'apja']
+    ];
+
     #[Route('/api/adresses', name: 'export_api_adresses')]
     public function api_adresses(EntityManagerInterface $manager): Response
     {
@@ -56,7 +62,8 @@ class ApiController extends AbstractController
             'unites' => $manager->getRepository(Unite::class)->getDistinctUnitesTypes(),
             'communes' => $adrRepo->getDistinctCommunes(),
             'communes_alias'  => $adrRepo->getCommunesAlias(),
-            'commandement_terms' => $this->commandement_terms
+            'commandement_terms' => $this->commandement_terms,
+            'liste_terms' => $this->liste_terms
 
         ];
         // dd($results['communes_alias']);
@@ -110,33 +117,61 @@ class ApiController extends AbstractController
     {
         $output = [];
         $data = $request->query->get('q') ?? $request->request->get('q');
+        try {
+            $data = json_decode($data);
+            $numeroNettoye = $data->number ? $this->nettoyerTelephone($data->number) : 'Z';
+
+            $numeroNettoye = strlen($numeroNettoye) > 8 ? substr($numeroNettoye, -9) : $numeroNettoye;
+
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'unite',
+                'data' => $manager->getRepository(Unite::class)->findByPhoneOrCodeUnite($numeroNettoye)
+            ];
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'person',
+                'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
+            ];
+            return $this->json($output);
+        } catch (\Throwable $th) {
+            return $this->json([
+                'error' => $th
+            ]);
+        }
+    }
+
+    #[Route('/api/get-list-of', name: 'export_api_getlistof')]
+    public function api_getlistof(Request $request, EntityManagerInterface $manager): Response
+    {
+        $data = $request->query->get('q') ?? $request->request->get('q');
         // try {
         $data = json_decode($data);
-        $numeroNettoye = $data->number ? $this->nettoyerTelephone($data->number) : 'Z';
+        $type = $data->type ?? $data->type;
+        $term = $data->term ?? $data->term;
+        $city = $data->city ?? $data->city;
+        $liste = $data->liste ?? $data->liste;
+        $liste = explode(' ', $data->liste); // Ex: ['liste', 'personnels', 'opj']
 
-        // if (strlen($numeroNettoye) < 6) { // si moins de 6 chiffres, c'est un code unité
-        //     $output[] = [
-        //         'type' => 'unite',
-        //         'data' => $manager->getRepository(Unite::class)->findByCodeUnite(intval($numeroNettoye))
-        //     ];
-        //     return $this->json($output);
-        // } else {
-        // si n° de téléphone, on garde les 9 derniers chiffres
-        // on ne s'embête pas avec l'indicatif pays ou le 1er zéro
-        $numeroNettoye = strlen($numeroNettoye) > 8 ? substr($numeroNettoye, -9) : $numeroNettoye;
+        $liste_words = [];
+        foreach ($this->liste_terms as $type => $words) {
+            foreach ($words as $word) {
+                if (in_array($word,  $liste)) {
 
-        $output[] = [
-            // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
-            'type' => 'unite',
-            'data' => $manager->getRepository(Unite::class)->findByPhoneOrCodeUnite($numeroNettoye)
-        ];
-        $output[] = [
-            // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
-            'type' => 'person',
-            'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
-        ];
-        return $this->json($output);
-        // }
+                    if (!array_key_exists($type, $liste_words))
+                        $liste_words[$type] = [];
+                    $liste_words[$type][] = $word;
+                }
+            }
+        }
+
+
+        $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+        foreach ($unites as $i => $unite) {
+            $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
+        }
+
+        return $this->json($unites);
         // } catch (\Throwable $th) {
         //     return $this->json([
         //         'error' => $th

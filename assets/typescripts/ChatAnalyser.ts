@@ -10,7 +10,8 @@ export default class Chat {
         Attribute: [],
         FirstName: [],
         Name: [],
-        Fonction: []
+        Fonction: [],
+        Liste: []
     };
     private words: Words = {};
     private nlp = nlp;
@@ -66,25 +67,35 @@ export default class Chat {
         const organizations = doc.organizations().out('array'); // Ex. : ['unité marketing']
         const cities = doc.places().out('array');
         const attributes = doc.match('#Attribute').out('array'); // Ex. : ['numéro', 'portable'] 
+        const listes = doc.match('#Liste').out('array'); // Ex: ['liste', 'personnels', 'opj']
 
         // Logique pour déterminer le type et les termes
-        let type: 'number' | 'unite' | 'person' | 'unknown', term: string | null, city: string | null;
+        let // 
+            type: 'number' | 'unite' | 'person' | 'liste' | 'unknown',
+            term: string | null,
+            city: string | null,
+            liste: string | null;
+
         if (number !== null) {
             type = 'number';
             term = organizations.length > 0 ? this.replaceAlias(organizations.join(' '), 'Organization') : people.length > 0 ? people.join(' ') : null;
             city = this.replaceAlias(cities.join(' '), 'City');
+            liste = null;
         } else if (organizations.length > 0) {
             type = 'unite';
             term = this.replaceAlias(organizations.join(' '), 'Organization');
             city = this.replaceAlias(cities.join(' '), 'City');
+            liste = listes.join(' ');
         } else if (people.length > 0) {
             type = 'person';
             term = people.join(' ');
             city = null;
+            liste = null;
         } else {
             type = 'unknown';
             term = null;
             city = null;
+            liste = null;
         }
 
         return {
@@ -93,7 +104,7 @@ export default class Chat {
             city,
             number,
             attributes,
-            message
+            liste
         };
     }
 
