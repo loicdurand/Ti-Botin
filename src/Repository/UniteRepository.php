@@ -66,7 +66,7 @@ class UniteRepository extends ServiceEntityRepository
             ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.name LIKE :term")
-            ->setParameter('term', '%' . $term . '%');
+            ->setParameter('term', $term . '%');
         if (!is_null($city)) {
             $query
                 ->andWhere("adr.commune = :city")

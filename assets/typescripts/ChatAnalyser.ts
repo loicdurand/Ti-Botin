@@ -9,7 +9,8 @@ export default class Chat {
         City: [],
         Attribute: [],
         FirstName: [],
-        Name: []
+        Name: [],
+        Fonction: []
     };
     private words: Words = {};
     private nlp = nlp;
@@ -64,7 +65,7 @@ export default class Chat {
         const people = doc.people().out('array'); // Ex. : ['Thomas']
         const organizations = doc.organizations().out('array'); // Ex. : ['unité marketing']
         const cities = doc.places().out('array');
-        const attributes = doc.match('#Attribute').out('array'); // Ex. : ['numéro', 'portable']
+        const attributes = doc.match('#Attribute').out('array'); // Ex. : ['numéro', 'portable'] 
 
         // Logique pour déterminer le type et les termes
         let type: 'number' | 'unite' | 'person' | 'unknown', term: string | null, city: string | null;
@@ -102,6 +103,9 @@ export default class Chat {
             tags: {
                 Name: {
                     isA: 'Person', // Hérite de Person pour être détecté par doc.people()
+                },
+                Fonction: {
+                    isA: 'Person'
                 }
             },
             words: this.words,

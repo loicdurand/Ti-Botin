@@ -15,6 +15,11 @@ use App\Entity\Adresse;
 class ApiController extends AbstractController
 {
 
+    private $commandement_terms = [
+        'cdu' => ['commande', 'commandant', 'cdt', 'c1', 'cc', 'cb', 'ccb', 'cbr', 'cpsig', 'cdu'],
+        'adjoint' => ['c2', 'adjoint', 'cba', 'cbra', 'cdua']
+    ];
+
     #[Route('/api/adresses', name: 'export_api_adresses')]
     public function api_adresses(EntityManagerInterface $manager): Response
     {
@@ -36,23 +41,8 @@ class ApiController extends AbstractController
     #[Route('/api/unite/{adresse_id}', name: 'export_api_adresse')]
     public function api_adresse(EntityManagerInterface $manager, string $adresse_id): Response
     {
-        // $output = [];
         $unites = $manager->getRepository(Unite::class)->findByAdresseId($adresse_id);
         return $this->json($unites);
-        // $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
-        // foreach ($unites as $unite) {
-        //     $adr = $unite->getAdresse(); 
-        //     $output[] = [
-        //         'id' => $unite->getId(),
-        //         'code' => $unite->getCode(),
-        //         'name' => $unite->getName(),
-        //         'lat' => $adr->getLat(),
-        //         'lon' => $adr->getLng(),
-        //         'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
-
-        //     ];
-        // }
-        // return $this->json($output);
     }
 
     #[Route('/api/chat-data', name: 'export_api_chatdata')]
@@ -66,6 +56,7 @@ class ApiController extends AbstractController
             'unites' => $manager->getRepository(Unite::class)->getDistinctUnitesTypes(),
             'communes' => $adrRepo->getDistinctCommunes(),
             'communes_alias'  => $adrRepo->getCommunesAlias(),
+            'commandement_terms' => $this->commandement_terms
 
         ];
         // dd($results['communes_alias']);
@@ -80,6 +71,7 @@ class ApiController extends AbstractController
             $data = json_decode($data);
             $type = $data->type ?? $data->type;
             $term = $data->term ?? $data->term;
+            $attributes = $data->attributes ?? $data->attributes;
             $city = $data->city ?? $data->city;
             $output = [
                 'type' => $type,
@@ -89,7 +81,21 @@ class ApiController extends AbstractController
             if ($type === 'person') {
                 $output['data'] = $manager->getRepository(User::class)->findByIdentity($term);
             } else if ($type === 'unite') {
-                $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+
+                // si recherche du type "qui commande, qui est l'adjoint, etc.."
+                if (count($attributes)) {
+                    $cdt_words = [];
+                    foreach ($this->commandement_terms as $fonction_type => $words) {
+                        foreach ($words as $word) {
+                            if (in_array($word,  $attributes))
+                                $cdt_words[] = $fonction_type;
+                        }
+                    }
+                    $output['type'] = 'person';
+                    $output['data'] = $manager->getRepository(User::class)->findByFonction($term, $city, $cdt_words);
+                } else {
+                    $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+                }
             }
             return $this->json($output);
         } catch (\Throwable $th) {

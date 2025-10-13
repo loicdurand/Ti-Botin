@@ -85,7 +85,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
-    .addWords([...terms.TELEPHONE_TERMS, ...terms.MAIL_TERMS, ...terms.ADRESSE_TERMS], 'Attribute')
+    .addWords([
+      ...terms.TELEPHONE_TERMS,
+      ...terms.MAIL_TERMS,
+      ...terms.ADRESSE_TERMS,
+      ...Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat()
+    ], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
     .addAliasses(chat_data.communes_alias, "City")

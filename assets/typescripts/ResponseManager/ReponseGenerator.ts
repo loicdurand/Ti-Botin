@@ -14,6 +14,7 @@ const hints = {
         "Je ne pas vous vexer, mais je n'ai rien compris à votre demande.",
         "Pardon?",
         "plaît-il?",
+        "Votre demande n'est pas assez précise pour moi. Veuillez reformuler.",
         "Pourriez-vous reformuler votre demande, s'il vous plaît?"
     ],
     error_hints: [

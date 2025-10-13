@@ -108,6 +108,30 @@ class UserRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+    public function findByFonction($term, $city, $cdt_words)
+    {
+        $c1 = in_array("cdu", $cdt_words);
+
+        $query = $this->createQueryBuilder('u')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->innerJoin('u.unite', 'un')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.name LIKE :term AND u.fonction = :fonction")
+            ->setParameter('term', '%' . $term . '%')
+            ->setParameter('fonction', $c1 ? 'C' : 'A');
+        if (!is_null($city)) {
+            $query
+                ->andWhere("adr.commune = :city")
+                ->setParameter('city', $city);
+        }
+
+        $persons = $query
+            ->getQuery()
+            ->getResult();
+
+        return $persons;
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */
