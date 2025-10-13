@@ -117,7 +117,7 @@ class UserRepository extends ServiceEntityRepository
             ->innerJoin('u.unite', 'un')
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.name LIKE :term AND u.fonction = :fonction")
-            ->setParameter('term', '%' . $term . '%')
+            ->setParameter('term', $term . '%')
             ->setParameter('fonction', $c1 ? 'C' : 'A');
         if (!is_null($city)) {
             $query

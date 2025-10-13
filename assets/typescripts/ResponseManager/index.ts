@@ -128,19 +128,22 @@ export default class {
                 this.bubble.innerHTML += this.addUserCard(data[0], attrs);
             });
         } else {
-
             const that = this;
             const this_func = this.printPersonMessage;
 
             if (!this.isKnownUnite()) {
 
-                this.typeMessage(this.bubble, this.responder.init_many_results);
-                this.bubble = this.bubbleBuilder('input-bubble');
+                // this.typeMessage(this.bubble, this.responder.init_ask_unite, () => {
+                // this.bubble = this.bubbleBuilder('input-bubble');
+                this.bubble.classList.add('input-bubble')
                 this.typeMessage(this.bubble, this.responder.init_ask_unite);
                 this.bubble.appendChild(this.addPrompt(function (this: HTMLInputElement, e: Event) {
                     localStorage.setItem(`${STORAGE_KEY}_unite`, this.value);
+                    that.bubble = that.bubbleBuilder('received');
                     this_func.apply(that, [data, attrs]);
                 }));
+                // });
+
 
             } else {
                 const userInSameUnite = data.find(user => user.code_unite == localStorage.getItem(`${STORAGE_KEY}_unite`))
