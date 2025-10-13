@@ -61,11 +61,11 @@ const hints = {
     ],
     // Plusieurs résultats
     init_many_results_hints: [
-        "J'ai touvé plusieurs résultats. Complétez l'action ci-dessous, s'il vous plaît.",
-        "Plusieurs résultats. Aidez-moi à affiner tout ça!",
+        "J'ai touvé plusieurs résultats. Choisissez dans la liste ci-dessous, s'il vous plaît.",
+        "Plusieurs résultats. Choisissez dans la liste!",
         "Veuillez compléter l'action ci-dessous.",
-        "Faite un peu de tri là-dedans!",
-        "Aidez-moi, je ne sais plus où j'en suis!",
+        "Cette liste présente les unités correspondant à vos critères. Choisissez celle que vous souhaitez afficher.",
+        "Choisissez dans la liste l'unité que vous recherchez:",
     ],
     init_choose_user_hints: [
         "J'ai trouvé plusieurs personnes correspondant à votre recherche. Sélectionnez celle que vous voulez:",
@@ -97,7 +97,7 @@ const hints = {
         const n = args.len;
         const cols = [...new Set(args.columns.map(col => {
             switch (col) {
-                case 'telephone_number': return pluralize(n, 'le numéro', 'les numéros') + ' de téléphone';
+                case 'telephone_number': return pluralize(n, 'le numéro', 'les numéros');
                 case 'code': return pluralize(n, 'le code', 'les codes');
                 default: return false;
             }
