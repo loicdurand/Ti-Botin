@@ -1,4 +1,4 @@
-import { normalizeAccents } from '../utils/str';
+import { normalizeAccents, pluralize } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 import { Unite, User } from '../types';
@@ -13,7 +13,7 @@ export default class {
 
     private bubbleBuilder: Function;
     private bubble: HTMLElement;
-    private responder = new ReponseGenerator();
+    private responder = ReponseGenerator;
 
     constructor(bubbleBuilderFunction: (sens: "sent" | "received") => HTMLElement) {
         this.bubbleBuilder = bubbleBuilderFunction;
@@ -27,7 +27,65 @@ export default class {
         return this;
     }
 
+    public printVariedResultsMessage(results: ({ type: string, data: User[] | Unite[] })[], attrs: string[]) {
+
+        if (results.filter(({ data }) => data.length).length === 0)
+            return this.printErrorMessage();
+
+        this.bubble.classList.remove('loading');
+        // Ici, on a des résultats de différents types à afficher.
+        // En 1er, on va s'occuper d'afficher les unités.
+        // On commence par un petit message d'intro, 
+        this.typeMessage(this.bubble, this.responder.message_intro, async () => {
+
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            // On décortique les résultats concernant les unités
+            const uniteResults = results.find(({ type }) => type === 'unite')?.data as Unite[];
+
+            let len = uniteResults ? uniteResults.length : 0;
+            // On met ensuite un titre, pour bien distinguer les sections.
+            this.bubble.innerHTML += `
+                <h3>1. ${pluralize(len, 'Unité')}</h3>
+                <span class="text"></span>`;
+
+            // On défini un contexte pour le message de réponse
+            this.responder.varied_results_unite = {
+                len: uniteResults.length,
+                columns: uniteResults.map(u => u.found_column)
+            };
+
+            this.typeMessage(this.bubble, this.responder.varied_results_unite, () => {
+                uniteResults.forEach(unite => {
+                    this.bubble.innerHTML += this.addUniteCard(unite, attrs);
+                });
+
+                // Nos unités affichées, on vire le span.text précédent pour en créer un nouveau
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                // On passe à l'affichage des utilisateurs
+                this.bubble.innerHTML += `
+                    <h3>2. ${pluralize(len, 'Personnel')}</h3>
+                    <span class="text"></span>`;
+                // Maj du contexte car on passe des unités aux utilisateurs
+                const personResults = results.find(({ type }) => type === 'person')?.data as User[];
+                this.responder.varied_results_user = {
+                    len: personResults.length,
+                    columns: personResults.map(u => u.found_column)
+                };
+                // Ne reste plus qu'à afficher
+                this.typeMessage(this.bubble, this.responder.varied_results_user, () => {
+                    personResults.forEach(person => {
+                        this.bubble.innerHTML += this.addUserCard(person, attrs);
+                    });
+                });
+
+            });
+
+        });
+
+    }
+
     public printUniteMessage(data: Unite[], attrs: string[]): void {
+
         console.log({ data, attrs });
         this.bubble.classList.remove('loading');
         const nb_results = data.length;
@@ -118,6 +176,12 @@ export default class {
         return this;
     }
 
+    public printErrorMessage(): this {
+        this.bubble.classList.remove('loading');
+        this.typeMessage(this.bubble, this.responder.error);
+        return this;
+    }
+
     private isKnownUnite() {
         return localStorage.getItem(`${STORAGE_KEY}_unite`) !== null;
     }
@@ -155,7 +219,7 @@ export default class {
         return /*html*/`
         <div class="entity-card ${cardCls.join(' ')}" data-id="${unite.code}">
         <div class="entity-header" title="${unite.cn}">
-            <span class="entity-code">${unite.code}</span>&nbsp;-
+            <span class="entity-code">${unite.code}</span>&nbsp;-&nbsp
             <strong>${unite.name}</strong>
         </div>
         <div class="entity-contact" title="Mail: ${unite.mail}&#10;Téléphone: ${unite.tph}">
@@ -163,7 +227,6 @@ export default class {
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${unite.tph}</div>
         </div>
         <div class="entity-other">
-            <div class="entity-attribute">Capacité judiciaire:&nbsp;<strong>${+unite.capacite_judiciaire ? 'OUI' : 'NON'}</strong></div>
             <div class="entity-attribute">Subdivision:&nbsp;${unite.subdivision}</div>
         </div>
     </div>

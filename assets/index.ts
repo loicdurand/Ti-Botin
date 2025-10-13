@@ -6,7 +6,7 @@ import ResponseManager from "./typescripts/ResponseManager";
 import Chat from "./typescripts/ChatAnalyser";
 import { Point } from './typescripts/types';
 
-import { User, Unite } from './typescripts/types';
+import { AnalysisResult, User, Unite, FetchResult } from './typescripts/types';
 
 // let signets: Set<number> = new Set();  // IDs des signets (simule session)
 
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
   });
 
-  async function handleSendEvent() {
+  async function handleSendEvent(): Promise<void> {
 
     const message = input.value.trim();
     if (!message) return;
@@ -115,16 +115,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const responsemanager = new ResponseManager(addBubbleToTUI);
       responsemanager.addLoader();
 
-      const analyzed = chat.analyzeMessage(message);
+      const analyzed: AnalysisResult = chat.analyzeMessage(message);
 
-      if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
-        const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
-        analyzed.type = type;
-        analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
-      }
+      console.log(analyzed);
 
       // Fetch recherche API
-      const res = await fetch('/export/api/search', {
+      const fetch_url = analyzed.type === 'number' ? '/export/api/find-by-number' : '/export/api/search';
+      const res = await fetch(fetch_url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
@@ -133,50 +130,47 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok)
         return false;
 
-      const data: User[] | Unite[] = await res.json();
+      let json = await res.json();
+
+      if (analyzed.type === 'number') {
+
+        const results: FetchResult[] = json.filter((result: FetchResult) => result.data.length > 0);
+
+        if (results.length === 1) {
+          json = results[0];
+        } else {
+
+          responsemanager.printVariedResultsMessage(results, analyzed.attributes);
+
+          return;
+
+        }
+      }
+
+      if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
+        const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
+        analyzed.type = type;
+        analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
+      }
+
+      const { type: response_type, data }: FetchResult = json;
 
       console.log(data);
 
-      if (analyzed.type == "person") {
+      if (response_type == "person") {
         if (data.length === 1) chat.setContext(data[0] as User);
         responsemanager.printPersonMessage(data as User[], analyzed.attributes);
-      } else if (analyzed.type == "unite") {
+      } else if (response_type == "unite") {
         if (data.length === 1) chat.setContext(data[0] as Unite);
         responsemanager.printUniteMessage(data as Unite[], analyzed.attributes);
       } else {
         responsemanager.printUnknownMessage();
       }
+
     }, 1000);
 
-    input.value = '';
+    // input.value = '';
   }
-
-  // function addSignetToUI(unites: any[]) {
-  //   const signets = document.getElementById('signets-list');
-  //   const li = document.createElement('li');
-  //   li.className = 'signet-item';
-  //   const unite = unites[0];
-
-  //   if (unites.length == 1) {
-  //     li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-  //     li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-  //     signets?.insertBefore(li, signets.firstChild);
-  //   } else {
-  //     const h3 = document.createElement('h3');
-  //     h3.innerHTML = unite.label;
-  //     li.appendChild(h3);
-  //     const ul = document.createElement('ul');
-  //     unites.forEach(unite => {
-  //       const sub_li = document.createElement('li');
-  //       sub_li.innerHTML = `<strong>${unite.name}</strong> - ${unite.code}`;
-  //       sub_li.onclick = () => map.setView([+unite.lat, +unite.lon], 11);  // Zoom sur clic signet
-  //       ul.appendChild(sub_li);
-  //     });
-  //     li.appendChild(ul);
-  //     signets?.insertBefore(li, signets.firstChild);
-
-  //   }
-  // }
 
   function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
     const bubbleCtnr = document.querySelector('#bubble-container .row');

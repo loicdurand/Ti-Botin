@@ -1,7 +1,7 @@
 import nlp from 'compromise';
 import utils from './utils';
 
-import { Words, Category, User, Unite } from './types';
+import { AnalysisResult, Words, Category, User, Unite } from './types';
 
 export default class Chat {
     private aliasses: Record<Category, { value: string, aliasses: string[] }[]> = {
@@ -51,7 +51,7 @@ export default class Chat {
         return this;
     }
 
-    public analyzeMessage(query: string) {
+    public analyzeMessage(query: string): AnalysisResult {
 
         this.extends();
 
@@ -60,14 +60,19 @@ export default class Chat {
         const doc = this.nlp(message);
 
         // Détection des entités
+        const number = doc.numbers().out('array').join(' ') || null; // Ex. : ['6804']
         const people = doc.people().out('array'); // Ex. : ['Thomas']
         const organizations = doc.organizations().out('array'); // Ex. : ['unité marketing']
         const cities = doc.places().out('array');
         const attributes = doc.match('#Attribute').out('array'); // Ex. : ['numéro', 'portable']
 
         // Logique pour déterminer le type et les termes
-        let type, term, city;
-        if (organizations.length > 0) {
+        let type: 'number' | 'unite' | 'person' | 'unknown', term: string | null, city: string | null;
+        if (number !== null) {
+            type = 'number';
+            term = organizations.length > 0 ? this.replaceAlias(organizations.join(' '), 'Organization') : people.length > 0 ? people.join(' ') : null;
+            city = this.replaceAlias(cities.join(' '), 'City');
+        } else if (organizations.length > 0) {
             type = 'unite';
             term = this.replaceAlias(organizations.join(' '), 'Organization');
             city = this.replaceAlias(cities.join(' '), 'City');
@@ -81,23 +86,13 @@ export default class Chat {
             city = null;
         }
 
-        // Mappe les attributs (ex. : "numéro portable" -> "telephone_portable")
-        // let mappedAttributes = [];
-        // if (attributes.includes('numero') && attributes.includes('portable')) {
-        //     mappedAttributes.push('telephone_portable');
-        // } else if (attributes.includes('email')) {
-        //     mappedAttributes.push('email');
-        // } else if (attributes.includes('adresse')) {
-        //     mappedAttributes.push('adresse');
-        // }
-
         return {
             type,
             term,
             city,
-            // mappedAttributes: mappedAttributes.join(' '),
-            attributes: attributes,
-            // message
+            number,
+            attributes,
+            message
         };
     }
 

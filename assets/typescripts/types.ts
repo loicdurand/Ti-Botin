@@ -1,12 +1,23 @@
 export type Words = { [key: string]: string }
 export type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name';
 
+export type AnalysisResult = {
+    type: 'unite' | 'person' | 'number' | 'unknown';
+    term: string | null;
+    city: string | null;
+    number: string | null;
+    attributes: string[];
+    message: string;
+}
+
 export type Point = {
     id: number,
     label: string,
     lat: string,
     lng: string
 };
+
+// Définition des types retournés par les fetchs
 
 export type Unite = {
     code: number,
@@ -19,7 +30,8 @@ export type Unite = {
     capacite_judiciaire: number,
     tph: string,
     mail: string,
-    parent: string
+    parent: string,
+    found_column: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
 }
 
 export type User = {
@@ -36,5 +48,14 @@ export type User = {
     specificite: string,
     tph: string,
     unite: string,
-    statut_corps: string
+    statut_corps: string,
+    found_column: (
+        'code' | 'telephone_number' // si unité trouvée par son TPH ou code unite
+        | 'tph' | 'port' | 'other'
+    ) //  ou personnel trouvé par son nigend, son n° de fixe ou mobile ou code unite,
+}
+
+export type FetchResult = {
+    type: 'person' | 'unite';
+    data: User[] | Unite[];
 }

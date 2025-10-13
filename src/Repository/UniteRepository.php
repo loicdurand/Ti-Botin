@@ -5,15 +5,19 @@ namespace App\Repository;
 use App\Entity\Unite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\DBAL\Connection;
 
 /**
  * @extends ServiceEntityRepository<Unite>
  */
 class UniteRepository extends ServiceEntityRepository
 {
+    private Connection $connection;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Unite::class);
+        $this->connection = $this->getEntityManager()->getConnection();
     }
 
     public function getDistinctUnitesTypes()
@@ -45,13 +49,24 @@ class UniteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByCodeUnite($cleaned_number)
+    {
+        return $this->createQueryBuilder('un')
+            ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.code LIKE :CU")
+            ->setParameter('CU', $cleaned_number . '%')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByIdentifier($term, $city)
     {
         $query = $this->createQueryBuilder('un')
             ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.name LIKE :term")
-            ->setParameter('term', $term . '%');
+            ->setParameter('term', '%' . $term . '%');
         if (!is_null($city)) {
             $query
                 ->andWhere("adr.commune = :city")
@@ -62,6 +77,28 @@ class UniteRepository extends ServiceEntityRepository
             ->getResult();
 
         return $unites;
+    }
+
+    public function findByPhoneOrCodeUnite($numeroNettoye)
+    {
+        $sql = "
+            SELECT 
+            CASE
+                WHEN REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '') LIKE :suffixe THEN 'telephone_number'
+                WHEN un.code LIKE :suffixe THEN 'code'
+                ELSE 'other'
+            END AS found_column,
+            un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capacite_judiciaire, un.telephone_number as tph, un.mail
+            FROM unite un
+            INNER JOIN adresse adr ON un.adresse_id = adr.id 
+            WHERE REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '') LIKE :suffixe
+            OR un.code LIKE :suffixe
+        ";
+
+        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye"]); // . $numeroNettoye]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
     }
 
     //    /**

@@ -5,15 +5,18 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\DBAL\Connection;
 
 /**
  * @extends ServiceEntityRepository<User>
  */
 class UserRepository extends ServiceEntityRepository
 {
+    private Connection $connection;
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
+        $this->connection = $this->getEntityManager()->getConnection();
     }
 
     public function getDistinctPrenoms()
@@ -73,6 +76,36 @@ class UserRepository extends ServiceEntityRepository
             return $this->findByIdentity('# ' . $term);
 
         return $persons;
+    }
+
+    public function findByPhone($numeroNettoye)
+    {
+        $sql = "
+            SELECT 
+            CASE
+                WHEN (
+                    REPLACE(REPLACE(u.tph, ' ', ''), '+', '') LIKE :suffixe
+                    AND 
+                    REPLACE(REPLACE(u.tph, ' ', ''), '+', '') != REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '')
+                ) THEN 'tph'
+                WHEN REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe THEN 'port'
+                ELSE 'other'
+            END AS found_column,
+            un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statut_corps, u.tph, u.port, u.mail, u.qualification 
+            FROM user u
+            INNER JOIN unite un ON u.unite_id = un.id 
+            WHERE (
+                REPLACE(REPLACE(u.tph, ' ', ''), '+', '') LIKE :suffixe
+                AND 
+                REPLACE(REPLACE(u.tph, ' ', ''), '+', '') != REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '')
+            )
+            OR REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe
+        ";
+
+        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye"]); // . $numeroNettoye]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
     }
 
     //    /**
