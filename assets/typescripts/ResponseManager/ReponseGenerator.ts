@@ -95,13 +95,13 @@ const hints = {
     // Résultats variés (unités et personnes)
     varied_results_unite_hints: (args: { len: number, columns: string[] }) => {
         const n = args.len;
-        const cols = args.columns.map(col => {
+        const cols = [...new Set(args.columns.map(col => {
             switch (col) {
                 case 'telephone_number': return pluralize(n, 'le numéro', 'les numéros') + ' de téléphone';
                 case 'code': return pluralize(n, 'le code', 'les codes');
                 default: return false;
             }
-        }).filter(Boolean).join(' et ');
+        }))].filter(Boolean).join(' et ');
 
         return [
             `J'ai trouvé ${n} ${pluralize(n, 'unité')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
@@ -120,7 +120,7 @@ const hints = {
         }).filter(Boolean).join(' et ');
 
         return [
-            `J'ai trouvé ${n} ${pluralize(n, 'personnels')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
+            `J'ai trouvé ${n} ${pluralize(n, 'personnel')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
             `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'ce personnel', 'ces personnels')}:`
         ];
     }
