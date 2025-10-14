@@ -31,7 +31,8 @@ export type Unite = {
     tph: string,
     mail: string,
     parent: string,
-    found_column: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
+    found_column?: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
+    users?: User[]
 }
 
 export type User = {

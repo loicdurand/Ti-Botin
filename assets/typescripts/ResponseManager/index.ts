@@ -1,7 +1,7 @@
 import { normalizeAccents, pluralize } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
-import { Unite, User } from '../types';
+import { AnalysisResult, Unite, User } from '../types';
 
 // let index = 0;
 
@@ -171,6 +171,36 @@ export default class {
                 }
             }
         }
+    }
+
+    public printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string }, analyzed: AnalysisResult) {
+        this.bubble.classList.remove('loading');
+        const nb_unites = data.length;
+        // On défini le contexte pour notre message
+        this.responder.list_unite_intro = {
+            len: nb_unites,
+            term: analyzed.term,
+            city: analyzed.city
+        };
+        // On affiche une petite intro
+        this.typeMessage(this.bubble, this.responder.list_unite_intro, () => {
+            // boucle sur les unités trouvées
+            data.forEach((unite, i) => {
+                this.responder.list_users_intro = {
+                    len: unite?.users?.length || 0,
+                    words,
+                    unite: unite.cn
+                };
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                this.bubble.innerHTML += `
+                    <h3>${i + 1}. ${unite.code} - <strong>${unite.name}</strong></h3>
+                    <span class="text"></span>`;
+                if (i === 0)
+                    this.typeMessage(this.bubble, this.responder.list_users_intro, () => {
+                        console.log('done');
+                    });
+            });
+        });
     }
 
     public printUnknownMessage(): this {

@@ -1,4 +1,5 @@
-import matchers from "@testing-library/jest-dom/types/matchers";
+import { stat } from "fs";
+import { Unite } from "../types";
 import { pluralize } from "../utils/str";
 
 const hints = {
@@ -124,6 +125,32 @@ const hints = {
             `J'ai trouvé ${n} ${pluralize(n, 'personnel')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
             `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'ce personnel', 'ces personnels')}:`
         ];
+    },
+
+    list_unite_intro_hints: ({ len: n, term, city }: { len: number, term: string, city: string | null }) => {
+        if (city === null)
+            return [
+                `Vous n'avez pas précisé de ville dans laquelle lancer ma recherche. Je vous fournis donc une liste de toutes les ${term.toUpperCase()} que j'ai pu trouver.
+                Au total, j'ai compté ${n} ${pluralize(n, 'unité')}:
+                `
+            ];
+        else
+            return [
+                `J'ai trouvé ${n} ${pluralize(n, 'unité')} correspondant à vos critères de recherche.`
+            ];
+    },
+
+    list_users_intro_hints: ({ len: n, words, unite }: { len: number, words: { [K in 'statut' | 'qualification']: string[] }, unite: string }) => {
+        let statut = '';
+        let qualification = ''
+        if (words.hasOwnProperty('statut'))
+            statut = ' ayant le statut de ' + words['statut'].join(', ');
+        if (words.hasOwnProperty('qualification'))
+            qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
+
+        return [
+            `${unite} compte ${n} personnels${[statut, qualification].filter(Boolean).join(' et')}:`
+        ];
     }
 
 };
@@ -162,6 +189,12 @@ const responder = {
                     break;
                 case 'varied_results_user':
                     target_hints = target.varied_results_user_hints(target.context.args);
+                    break;
+                case 'list_unite_intro':
+                    target_hints = target.list_unite_intro_hints(target.context.args);
+                    break;
+                case 'list_users_intro':
+                    target_hints = target.list_users_intro_hints(target.context.args);
                     break;
                 default:
                     break;

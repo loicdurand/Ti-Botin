@@ -168,18 +168,22 @@ class ApiController extends AbstractController
 
                     if ($type === 'statut')
                         $liste_words[$type][] = in_array($word, $this->liste_eq['militaire']) ? 'militaire' : 'civil';
-                    else
+                    else if ($type === 'qualification')
                         $liste_words[$type][] = $word;
                 }
             }
         }
 
+        // dd($liste_words);
         $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
         foreach ($unites as $i => $unite) {
             $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
         }
 
-        return $this->json($unites);
+        return $this->json([
+            'words' => $liste_words,
+            'data' => $unites
+        ]);
         // } catch (\Throwable $th) {
         //     return $this->json([
         //         'error' => $th

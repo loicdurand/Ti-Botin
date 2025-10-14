@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (response_type == "person") {
         if (data.length === 1) {
           if (analyzed.attributes.filter(attr => fonction_terms.includes(attr))) {
-            console.log('ici');
             chat.setContext({ name: (data[0] as User).unite } as Unite);
           } else {
             chat.setContext(data[0] as User);
@@ -200,9 +199,10 @@ async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseMan
     return false;
 
   let json = await res.json();
+  const { data, words } = json;
   console.log({ json });
 
-  //responsemanager.printListeMessage(data as Unite[], analyzed.attributes);
+  responsemanager.printListeMessage(data, words, analyzed);
 }
 
 function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
