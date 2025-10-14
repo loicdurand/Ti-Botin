@@ -173,7 +173,7 @@ export default class {
         }
     }
 
-    public printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string }, analyzed: AnalysisResult) {
+    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string }, analyzed: AnalysisResult) {
         this.bubble.classList.remove('loading');
         const nb_unites = data.length;
         // On défini le contexte pour notre message
@@ -183,23 +183,24 @@ export default class {
             city: analyzed.city
         };
         // On affiche une petite intro
-        this.typeMessage(this.bubble, this.responder.list_unite_intro, () => {
-            // boucle sur les unités trouvées
-            data.forEach((unite, i) => {
-                this.responder.list_users_intro = {
-                    len: unite?.users?.length || 0,
-                    words,
-                    unite: unite.cn
-                };
-                this.bubble.querySelector('.text')?.classList.remove('text');
-                this.bubble.innerHTML += `
+        await this.typeMessage(this.bubble, this.responder.list_unite_intro);
+        // boucle sur les unités trouvées
+        data.forEach(async (unite, i) => {
+            const len = unite?.users?.length || 0;
+            this.responder.list_users_intro = {
+                len,
+                words,
+                unite: unite.cn
+            };
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            this.bubble.innerHTML += `
                     <h3>${i + 1}. ${unite.code} - <strong>${unite.name}</strong></h3>
                     <span class="text"></span>`;
-                if (i === 0)
-                    this.typeMessage(this.bubble, this.responder.list_users_intro, () => {
-                        console.log('done');
-                    });
-            });
+            if (i === 0) {
+                await this.typeMessage(this.bubble, this.responder.list_users_intro, () => {
+                    console.log('done');
+                });
+            }
         });
     }
 
@@ -359,35 +360,37 @@ export default class {
         return group;
     }
 
-    private typeMessage(element: HTMLElement, text: string, cb: Function | null = null) {
-        const max_duration = 1000;
-        const speed = this.speed * text.length > max_duration ? Math.round(max_duration / text.length) : this.speed;
-        const textSpan = element.querySelector('.text');
-        let i = 0;
+    private async typeMessage(element: HTMLElement, text: string, cb: Function | null = null): Promise<void> {
+        return new Promise((resolve) => {
+            const max_duration = 1000;
+            const speed = this.speed * text.length > max_duration ? Math.round(max_duration / text.length) : this.speed;
+            const textSpan = element.querySelector('.text');
+            let i = 0;
 
-        function typeChar() {
-            if (i < text.length) {
-                if (textSpan === null)
-                    return;
-                textSpan.textContent += text.charAt(i); // Ajoute un char
-                textSpan.classList.add('visible'); // Rend visible avec la transition CSS
-                i++;
-                setTimeout(typeChar, speed);
-            } else {
-                // Fin du typing : virer la classe et le curseur
-                element.classList.remove('typing');
-                element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
-                setTimeout(() => {
-                    const bubbleCtnr = document.querySelector('#bubble-container .row');
-                    bubbleCtnr && setTimeout(() => {
-                        bubbleCtnr.scrollTop = bubbleCtnr.scrollHeight;
-                    }, 300);
-                    cb && cb();
+            function typeChar() {
+                if (i < text.length) {
+                    if (textSpan === null)
+                        return;
+                    textSpan.textContent += text.charAt(i); // Ajoute un char
+                    textSpan.classList.add('visible'); // Rend visible avec la transition CSS
+                    i++;
+                    setTimeout(typeChar, speed);
+                } else {
+                    // Fin du typing : virer la classe et le curseur
+                    element.classList.remove('typing');
+                    element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
+                    setTimeout(() => {
+                        const bubbleCtnr = document.querySelector('#bubble-container .row');
+                        bubbleCtnr && setTimeout(() => {
+                            bubbleCtnr.scrollTop = bubbleCtnr.scrollHeight;
+                        }, 300);
+                        resolve(cb && cb());
 
-                }, 300); // Appel du callback s'il y en a un
+                    }, 300); // Appel du callback s'il y en a un
+                }
             }
-        }
 
-        typeChar(); // Lance le premier timeout
+            typeChar(); // Lance le premier timeout
+        })
     }
 }

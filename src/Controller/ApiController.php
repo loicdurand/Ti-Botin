@@ -186,7 +186,7 @@ class ApiController extends AbstractController
             // On ajoute les unités filles s'il y en a.
             if (count($unites) === 1) {
                 $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
-                return $this->json($this->buildTree([$unite, ...$unites_sub], $unite['uid']));
+                $unites = $this->buildTree([$unite, ...$unites_sub], $unite['uid']);
             }
         }
 
@@ -230,6 +230,6 @@ class ApiController extends AbstractController
             }
         }
 
-        return count($roots) > 0 ? $roots : $unites;
+        return $roots;
     }
 }

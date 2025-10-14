@@ -149,7 +149,7 @@ const hints = {
             qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
 
         return [
-            `${unite} compte ${n} personnels${[statut, qualification].filter(Boolean).join(' et')}:`
+            `${unite} ${n ? `compte ${n}` : 'ne compte aucun'} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')}.`
         ];
     }
 
