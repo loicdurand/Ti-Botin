@@ -179,14 +179,12 @@ class ApiController extends AbstractController
 
         $j = 0;
         foreach ($unites as $i => $unite) {
-            if ($j++ === 100)
-                die('boucle');
             $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
             // Si la recherche utilisateur était suffisemment précise pour ne ramener qu'une unité
             // On ajoute les unités filles s'il y en a.
             if (count($unites) === 1) {
                 $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
-                $unites = $this->buildTree([$unite, ...$unites_sub], $unite['uid']);
+                $unites = $this->buildTree([$unites[$i], ...$unites_sub], $unite['uid']);
             }
         }
 

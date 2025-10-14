@@ -82,6 +82,13 @@ const hints = {
         "Ôtez-moi d'un doute. Vous cherchez quel unité?",
         "Hum... Laquelle choisir?"
     ],
+    init_choose_list_unites_hints: [
+        "Je peux fournir la liste des personnels demandés sous forme de tableau. Indiquez moi simplement pour quelle unité:",
+        "Précisez l'unité sur laquelle porte votre recherche:",
+        "En ne conservant que l'une de ces unités, je peux vous présenter davantage de résultats.",
+        "En me concentrant sur une seule unité, je pourrai vous procurer des résultats plus pertinents:"
+
+    ],
     init_ask_unite_hints: [
         "Indiquez-nous le code de votre unité. Ainsi, lorsque vous demanderez les infos d'une personne en ne fournissant que son prénom, vous obtiendrez en priorité les informations de personnes dans votre unité.",
         "Quel le code de votre unité? Celà nous permettra de vous fournir des réponses plus pertinentes",
@@ -149,7 +156,9 @@ const hints = {
             qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
 
         return [
-            `${unite} ${n ? `compte ${n}` : 'ne compte aucun'} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')}.`
+            `${unite} ${n ? `compte ${n}` : 'ne compte aucun'} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')}.`,
+            `${n === 0 ? 'Aucun' : n} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')} ${n === 0 ? "n'a" : n > 1 ? 'ont' : 'a'} été trouvé au sein de ${unite}`
+
         ];
     }
 

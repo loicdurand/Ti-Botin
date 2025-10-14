@@ -13,12 +13,25 @@ import { AnalysisResult, User, Unite, FetchResult } from './typescripts/types';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+  // Prompt send
+  const send = document.getElementById('send-btn') as HTMLButtonElement;
+  const input = document.getElementById('prompt-input') as HTMLInputElement;
+
+  send?.addEventListener('click', handleSendEvent);
+  input?.addEventListener('keyup', e => {
+    if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
+  });
+
   document.addEventListener('click', e => {
     const target = e.target as HTMLElement;
     if (!target)
       return;
 
-    if (target.matches('.entity-card *')) {
+    if (target.matches('#liste-personnels-bubble .column-radios input')) {
+
+      handleListePersonnelsAffinerUniteClick(target as HTMLInputElement);
+
+    } else if (target.matches('.entity-card *')) {
       const bubble = getParent(target, '.bubble') as HTMLElement;
       const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
       entity_card.classList.toggle('expanded');
@@ -44,6 +57,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     map.setView([+unites[0].lat, +unites[0].lng], 11)
     responsemanager.printUniteMessage(unites, []);
+
+  }
+
+  async function handleListePersonnelsAffinerUniteClick(target: HTMLInputElement) {
+
+    const label = target.nextElementSibling?.innerHTML?.replace(/^.*-\s/, '') || '';
+    const complement = target.dataset.liste
+
+    input.value = `Établis la liste des personnels ${complement} au sein de ${label}`;
+    send.dispatchEvent(new Event('click'));
 
   }
 
@@ -85,15 +108,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     .addWords(liste_terms, 'Liste')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
-
-  // Prompt send
-  const send = document.getElementById('send-btn') as HTMLButtonElement;
-  const input = document.getElementById('prompt-input') as HTMLInputElement;
-
-  send?.addEventListener('click', handleSendEvent);
-  input?.addEventListener('keyup', e => {
-    if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
-  });
 
   async function handleSendEvent(): Promise<void> {
 

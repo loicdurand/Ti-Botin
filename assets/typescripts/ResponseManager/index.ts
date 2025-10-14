@@ -173,8 +173,9 @@ export default class {
         }
     }
 
-    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string }, analyzed: AnalysisResult) {
+    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult) {
         this.bubble.classList.remove('loading');
+        this.bubble.id = "liste-personnels-bubble";
         const nb_unites = data.length;
         // On défini le contexte pour notre message
         this.responder.list_unite_intro = {
@@ -184,8 +185,58 @@ export default class {
         };
         // On affiche une petite intro
         await this.typeMessage(this.bubble, this.responder.list_unite_intro);
-        // boucle sur les unités trouvées
-        data.forEach(async (unite, i) => {
+
+        // CAS 1: LA VILLE N'A PAS ÉTÉ PRÉCISÉE: Ex: liste des opj de cgd -> On fait préciser
+        if (data.length > 1) {
+            // boucle sur les unités trouvées
+            let i = 0;
+            for (const unite of data) {
+                i++;
+                const len = unite?.users?.length || 0;
+                this.responder.list_users_intro = {
+                    len,
+                    words,
+                    unite: unite.cn
+                };
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                this.bubble.innerHTML += `
+                    <h3>${i}. ${unite.code} - <strong>${unite.name}</strong></h3>
+                    <span class="text"></span>`;
+
+                await this.typeMessage(this.bubble, this.responder.list_users_intro);
+
+                // if (!len && unite.children?.length) {
+                //     this.bubble.querySelector('.text')?.classList.remove('text');
+                //     this.bubble.innerHTML += '<br/><br/><span class="text bold"></span>';
+                //     await this.typeMessage(this.bubble, `Souhaitez-vous afficher les résultats pour les ${unite.children?.length} unités filles?`);
+                // }
+
+            };
+
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            this.bubble.innerHTML += '<br/><br/><span class="text bold"></span>';
+            await this.typeMessage(this.bubble, this.responder.init_choose_list_unites);
+
+
+            let statut = '';
+            let qualification = ''
+            if (words.hasOwnProperty('statut'))
+                statut = ' ayant le statut de ' + words['statut'].join(', ');
+            if (words.hasOwnProperty('qualification'))
+                qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
+            const phrase = [statut, qualification].filter(Boolean).join(' et')
+            this.bubble.classList.add('input-bubble');
+            this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), phrase.split(' '), function (this: HTMLInputElement, e: Event) {
+                const code = (e.target as HTMLInputElement)?.value;
+                const unite = data.find(unite => unite.code == +code);
+                if (unite) {
+                    console.log(unite);
+                }
+            }));
+        } else {
+            // C2: UNE SEULE UNITÉ EN RÉSULTAT:
+            // ON AFFICHE UN ARBRE SEMBLABLE À CELUI DE L'ANNUAIRE GEND
+            const unite = data[0];
             const len = unite?.users?.length || 0;
             this.responder.list_users_intro = {
                 len,
@@ -194,14 +245,11 @@ export default class {
             };
             this.bubble.querySelector('.text')?.classList.remove('text');
             this.bubble.innerHTML += `
-                    <h3>${i + 1}. ${unite.code} - <strong>${unite.name}</strong></h3>
+                    <h3>${unite.code} - <strong>${unite.name}</strong></h3>
                     <span class="text"></span>`;
-            if (i === 0) {
-                await this.typeMessage(this.bubble, this.responder.list_users_intro, () => {
-                    console.log('done');
-                });
-            }
-        });
+
+            await this.typeMessage(this.bubble, this.responder.list_users_intro);
+        }
     }
 
     public printUnknownMessage(): this {
@@ -336,7 +384,7 @@ export default class {
 
     }
 
-    private addSelector(data: { id: string, label: string }[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
+    private addSelector(data: { id: string, label: string }[], complements: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
         const group = document.createElement('group')
         group.classList.add('column-radios');
         data.forEach(({ id, label }) => {
@@ -345,6 +393,7 @@ export default class {
             input.setAttribute('type', 'radio');
             input.setAttribute('name', 'entity-radio');
             input.setAttribute('value', id);
+            input.dataset.liste = complements.join(' ');
             input.classList.add('prompt-input');
             if (cb)
                 input.addEventListener('change', cb);
