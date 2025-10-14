@@ -174,10 +174,20 @@ class ApiController extends AbstractController
             }
         }
 
-        // dd($liste_words);
+        // dd($liste_words); 
         $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+
+        $j = 0;
         foreach ($unites as $i => $unite) {
+            if ($j++ === 100)
+                die('boucle');
             $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
+            // Si la recherche utilisateur était suffisemment précise pour ne ramener qu'une unité
+            // On ajoute les unités filles s'il y en a.
+            if (count($unites) === 1) {
+                $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
+                return $this->json($this->buildTree([$unite, ...$unites_sub], $unite['uid']));
+            }
         }
 
         return $this->json([
@@ -194,5 +204,32 @@ class ApiController extends AbstractController
     private function nettoyerTelephone($telephone)
     {
         return preg_replace('/[^0-9]|\s/', '', $telephone);
+    }
+
+    private function buildTree(array $unites, $uid): array
+    {
+        // Créer une map par UID
+        $uniteMap = [];
+        foreach ($unites as $unite) {
+            $uniteMap[$unite['uid']] = array_merge($unite, ['children' => []]);
+        }
+
+        $roots = [];
+        foreach ($unites as $unite) {
+            $mappedUnite = &$uniteMap[$unite['uid']]; // Référence pour éviter de recopier
+            if ($unite['parent'] !== null && str_starts_with($unite['parent'], $uid)) {
+                // Ajouter comme enfant du parent
+                if (isset($uniteMap[$unite['parent']])) {
+                    $uniteMap[$unite['parent']]['children'][] = &$mappedUnite;
+                } else {
+                    error_log("Parent {$unite['parent']} non trouvé pour l'unité {$unite['uid']}");
+                }
+            } else {
+                // C'est une racine
+                $roots[] = &$mappedUnite;
+            }
+        }
+
+        return count($roots) > 0 ? $roots : $unites;
     }
 }

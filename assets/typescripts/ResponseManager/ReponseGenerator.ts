@@ -128,9 +128,9 @@ const hints = {
     },
 
     list_unite_intro_hints: ({ len: n, term, city }: { len: number, term: string, city: string | null }) => {
-        if (city === null)
+        if (city === null && term.toLowerCase() !== 'comgendgp')
             return [
-                `Vous n'avez pas précisé de ville dans laquelle lancer ma recherche. Je vous fournis donc une liste de toutes les ${term.toUpperCase()} que j'ai pu trouver.
+                `Vous n'avez pas précisé de ville dans laquelle lancer ma recherche. Je vous fournis donc une liste des ${term.toUpperCase()} que j'ai pu trouver.
                 Au total, j'ai compté ${n} ${pluralize(n, 'unité')}:
                 `
             ];

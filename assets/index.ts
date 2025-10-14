@@ -198,8 +198,8 @@ async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseMan
     return false;
 
   let json = await res.json();
-  const { data: mixedData, words } = json;
-  const data = buildTree(mixedData, 'uid', 'parent');
+  const { data, words } = json;
+
   console.log({ data });
 
   responsemanager.printListeMessage(data, words, analyzed);

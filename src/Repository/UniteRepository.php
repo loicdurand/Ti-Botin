@@ -61,12 +61,23 @@ class UniteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByParent($uid)
+    {
+        return $this->createQueryBuilder('un')
+            ->select(self::UNITE_FIELDS)
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.parentDepartmentUID LIKE :uid")
+            ->setParameter('uid', $uid . '%')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByIdentifier($term, $city)
     {
         $query = $this->createQueryBuilder('un')
             ->select(self::UNITE_FIELDS)
             ->innerJoin('un.adresse', 'adr')
-            ->andWhere("un.name LIKE :term")
+            ->andWhere("LOWER(un.name) LIKE :term")
             ->setParameter('term', $term . '%');
         if (!is_null($city)) {
             $query
