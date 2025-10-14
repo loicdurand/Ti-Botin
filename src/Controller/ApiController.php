@@ -22,8 +22,13 @@ class ApiController extends AbstractController
 
     private $liste_terms = [
         'tous' => ['liste', 'list', 'tableau', 'table', 'personnels'],
-        'statut' => ['militaires', 'militaire', 'civils', 'civil'],
+        'statut' => ['militaires', 'militaire', 'mili', 'civils', 'civil'],
         'qualification' => ['opj', 'apj', 'apja']
+    ];
+
+    private $liste_eq = [
+        'militaire' => ['militaires', 'militaire', 'mili'],
+        'civil' => ['civils', 'civil']
     ];
 
     #[Route('/api/adresses', name: 'export_api_adresses')]
@@ -160,11 +165,14 @@ class ApiController extends AbstractController
 
                     if (!array_key_exists($type, $liste_words))
                         $liste_words[$type] = [];
-                    $liste_words[$type][] = $word;
+
+                    if ($type === 'statut')
+                        $liste_words[$type][] = in_array($word, $this->liste_eq['militaire']) ? 'militaire' : 'civil';
+                    else
+                        $liste_words[$type][] = $word;
                 }
             }
         }
-
 
         $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
         foreach ($unites as $i => $unite) {

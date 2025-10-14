@@ -150,8 +150,14 @@ class UserRepository extends ServiceEntityRepository
 
         if (!empty($liste['statut'])) {
             $statut = $liste['statut'];
-            $query->andWhere("u.statutCorps IN (:statut)")
+            $query->andWhere("LOWER(u.statutCorps) IN (:statut)")
                 ->setParameter('statut', implode(',', $statut));
+        }
+
+        if (!empty($liste['qualification'])) {
+            $qualification = $liste['qualification'];
+            $query->andWhere("LOWER(u.qualification) IN (:qualification)")
+                ->setParameter('qualification', implode(',', $qualification));
         }
 
         $persons = $query
