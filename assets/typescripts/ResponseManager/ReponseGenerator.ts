@@ -157,8 +157,7 @@ const hints = {
 
         return [
             `${unite} ${n ? `compte ${n}` : 'ne compte aucun'} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')}.`,
-            `${n === 0 ? 'Aucun' : n} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')} ${n === 0 ? "n'a" : n > 1 ? 'ont' : 'a'} été trouvé au sein de ${unite}`
-
+            `${n === 0 ? 'Aucun' : n} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')} ${n === 0 ? "n'a" : n > 1 ? 'ont' : 'a'} été trouvé au sein de ${unite}.`
         ];
     }
 

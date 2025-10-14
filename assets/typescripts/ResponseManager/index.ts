@@ -250,11 +250,11 @@ export default class {
 
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
             this.bubble.querySelector('.text')?.classList.remove('text');
-            this.bubble.innerHTML += '<br/>';
+            // this.bubble.innerHTML += '<br/>';
             // const section = document.createElement('section');
             document.getElementById('bubble-container')?.classList.add('big');
 
-            this.bubble.appendChild(this.renderTreeToHTML(unite));
+            this.bubble.appendChild(this.renderTreeToHTML(unite, false));
             // this.bubble.appendChild(section);
         }
     }
@@ -271,14 +271,19 @@ export default class {
         return this;
     }
 
-    private renderTreeToHTML(unite: Unite) {
-        console.log(`${unite.name} has ${unite?.users?.length} users`);
+    private renderTreeToHTML(unite: Unite, with_title: boolean = true) {
+
         const section = document.createElement('section');
-        // const h4 = document.createElement('h4');
-        // h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
-        // section.appendChild(h4);
+        if (with_title) {
+            const h4 = document.createElement('h4');
+            h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
+            section.appendChild(h4);
+        }
+
         if (unite?.users?.length)
-            section.innerHTML += table_template(unite.users as User[]);
+            section.appendChild(table_template(unite.users as User[]));
+        else
+            section.innerHTML += '<span>Aucun personnel à afficher pour cette unité.</span>';
 
         if (!unite.hasOwnProperty('children')) {
             return section;
@@ -475,7 +480,8 @@ export default class {
     }
 }
 
-function table_template(users: User[]) {
+function table_template(users: User[]): HTMLTableElement {
+
     const fonctions = {
         'C': {
             short: "CDU",
@@ -494,32 +500,59 @@ function table_template(users: User[]) {
             short: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].short : "",
             long: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].long : ""
         });
-    return `
-            <table>
-				<thead>
-					<tr>
-						<th scope="col">Fonction</th>
-						<th scope="col">Grade</th>
-						<th scope="col">Nom Prénom</th>
-						<th scope="col" title="Spécificité">Spéc.</th>
-						<th scope="col">Tph Fixe</th>
-						<th scope="col">Néo</th>
-						<th scope="col">Mail</th>
-					</tr>
-				</thead>
-				<tbody>
-					${users.map(user => `
-                        <tr>
-                            <td title="${getFn(user).long}">${getFn(user).short}</td>
-							<td>${user.grade}</td>
-							<td>${user.nom + " " + user.prenom}</td>
-							<td>${user.qualification + (user.specificite != "" ? " " + user.specificite : "")}</td>
-							<td>${user.tph.replace(/\s/g, '.')}</td>
-							<td>${user.port.replace(/\s/g, '.')}</td>
-							<td title="${user.mail}">${user.mail.replace(/@gend.*$/, '...')}</td>
-						</tr>
-                `)}
-				</tbody>
-			</table>    
-    `.trim();
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tr = document.createElement('tr');
+    ['Fonction', 'Grade', 'Nom Prénom', 'Spéc.', 'Tph fixe', 'Néo', 'Mail'].map(term => {
+        const th = document.createElement('th');
+        th.setAttribute('scope', 'col');
+        th.textContent = term;
+        if (term === 'Spéc.')
+            th.setAttribute('title', 'Spécificité');
+        tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    users.map(user => {
+        const tr = document.createElement('tr');
+        const td0 = document.createElement('td');
+        td0.setAttribute('title', getFn(user).long);
+        td0.textContent = getFn(user).short;
+        tr.appendChild(td0);
+
+        const td1 = document.createElement('td');
+        td1.textContent = user.grade;
+        tr.appendChild(td1);
+
+        const td2 = document.createElement('td');
+        td2.textContent = user.prenom + ' ' + user.nom;
+        tr.appendChild(td2);
+
+        const td3 = document.createElement('td');
+        td3.textContent = user.qualification + (user.specificite != "" ? " " + user.specificite : "");
+        tr.appendChild(td3);
+
+        const td4 = document.createElement('td');
+        td4.textContent = user.tph.replace(/\s/g, '.');
+        tr.appendChild(td4);
+
+        const td5 = document.createElement('td');
+        td5.textContent = user.port.replace(/\s/g, '.');
+        tr.appendChild(td5);
+
+        const td6 = document.createElement('td');
+        td6.setAttribute('title', user.mail);
+        td6.textContent = user.mail.replace(/@gend.*$/, '@gend...');
+        tr.appendChild(td6);
+
+        tbody.appendChild(tr);
+
+    });
+
+    table.appendChild(tbody);
+
+    return table;
 }
