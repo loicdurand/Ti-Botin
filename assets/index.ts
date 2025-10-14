@@ -1,4 +1,5 @@
 import { normalizeAccents } from './typescripts/utils/str';
+import { buildTree } from './typescripts/utils/obj';
 import { getParent } from './typescripts/utils/document';
 import * as terms from './typescripts/lexic';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
@@ -174,8 +175,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         responsemanager.printUnknownMessage();
       }
 
-      console.log({ data, context: chat.getContext() });
-
     }, 1000);
 
     //input.value = '';
@@ -199,8 +198,9 @@ async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseMan
     return false;
 
   let json = await res.json();
-  const { data, words } = json;
-  console.log({ json });
+  const { data: mixedData, words } = json;
+  const data = buildTree(mixedData, 'uid', 'parent');
+  console.log({ data });
 
   responsemanager.printListeMessage(data, words, analyzed);
 }
