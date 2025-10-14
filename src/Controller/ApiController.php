@@ -184,6 +184,9 @@ class ApiController extends AbstractController
             // On ajoute les unités filles s'il y en a.
             if (count($unites) === 1) {
                 $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
+                foreach ($unites_sub as $j => $unite_sub) {
+                    $unites_sub[$j]['users'] = $manager->getRepository(User::class)->findListeOf($unite_sub['code'], $liste_words);
+                }
                 $unites = $this->buildTree([$unites[$i], ...$unites_sub], $unite['uid']);
             }
         }

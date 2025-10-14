@@ -249,6 +249,13 @@ export default class {
                     <span class="text"></span>`;
 
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            this.bubble.innerHTML += '<br/>';
+            // const section = document.createElement('section');
+            document.getElementById('bubble-container')?.classList.add('big');
+
+            this.bubble.appendChild(this.renderTreeToHTML(unite));
+            // this.bubble.appendChild(section);
         }
     }
 
@@ -262,6 +269,30 @@ export default class {
         this.bubble.classList.remove('loading');
         this.typeMessage(this.bubble, this.responder.error);
         return this;
+    }
+
+    private renderTreeToHTML(unite: Unite) {
+        console.log(`${unite.name} has ${unite?.users?.length} users`);
+        const section = document.createElement('section');
+        // const h4 = document.createElement('h4');
+        // h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
+        // section.appendChild(h4);
+        if (unite?.users?.length)
+            section.innerHTML += table_template(unite.users as User[]);
+
+        if (!unite.hasOwnProperty('children')) {
+            return section;
+        }
+
+        if (unite.children && unite.children.length > 0) {
+            const p = document.createElement('p');
+            unite.children.forEach(child => {
+                p.appendChild(this.renderTreeToHTML(child));
+            });
+            section.appendChild(p);
+        }
+
+        return section;
     }
 
     private isKnownUnite() {
@@ -442,4 +473,53 @@ export default class {
             typeChar(); // Lance le premier timeout
         })
     }
+}
+
+function table_template(users: User[]) {
+    const fonctions = {
+        'C': {
+            short: "CDU",
+            long: "Commandant d'unité"
+        },
+        'A': {
+            short: "2nd",
+            long: "Commandant d'unité en second"
+        },
+        'S': {
+            short: "2nd",
+            long: "Second"
+        }
+    },
+        getFn = (user: User) => ({
+            short: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].short : "",
+            long: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].long : ""
+        });
+    return `
+            <table>
+				<thead>
+					<tr>
+						<th scope="col">Fonction</th>
+						<th scope="col">Grade</th>
+						<th scope="col">Nom Prénom</th>
+						<th scope="col" title="Spécificité">Spéc.</th>
+						<th scope="col">Tph Fixe</th>
+						<th scope="col">Néo</th>
+						<th scope="col">Mail</th>
+					</tr>
+				</thead>
+				<tbody>
+					${users.map(user => `
+                        <tr>
+                            <td title="${getFn(user).long}">${getFn(user).short}</td>
+							<td>${user.grade}</td>
+							<td>${user.nom + " " + user.prenom}</td>
+							<td>${user.qualification + (user.specificite != "" ? " " + user.specificite : "")}</td>
+							<td>${user.tph.replace(/\s/g, '.')}</td>
+							<td>${user.port.replace(/\s/g, '.')}</td>
+							<td title="${user.mail}">${user.mail.replace(/@gend.*$/, '...')}</td>
+						</tr>
+                `)}
+				</tbody>
+			</table>    
+    `.trim();
 }
