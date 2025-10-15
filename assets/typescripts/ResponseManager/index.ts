@@ -2,6 +2,7 @@ import { normalizeAccents, pluralize } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 import { AnalysisResult, Unite, User } from '../types';
+import { spawn } from 'child_process';
 
 // let index = 0;
 
@@ -273,15 +274,18 @@ export default class {
     private async renderTreeToHTML(unite: Unite, with_title: boolean = true) {
 
         const section = document.createElement('section');
-        if (with_title) {
-            const h4 = document.createElement('h4');
-            h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
-            section.appendChild(h4);
-        }
+        const h4 = document.createElement('h4');
+        h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
+        section.appendChild(h4);
 
         if (unite?.users?.length) {
             const table = await table_template(unite.users as User[]);
             section.appendChild(table);
+            if (!with_title) {
+                const span = document.createElement('span');
+                span.classList.add('text');
+                section.appendChild(span);
+            }
 
         } else
             section.innerHTML += '<span>Aucun personnel à afficher pour cette unité.</span>';
@@ -305,6 +309,13 @@ export default class {
 
             section.appendChild(p);
         }
+
+        this.typeMessage(section, "Ci-dessous, je présente le résultat de la recherche pour les unités filles", () => {
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            const text = section.querySelector('table + span.visible');
+            if (text)
+                text.innerHTML += "&nbsp;&darr;"
+        });
 
         return section;
     }

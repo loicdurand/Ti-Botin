@@ -105,17 +105,25 @@
                     margin-block: .5em;
                 }
 
-                & section table .on-compact-hide {
-                    display: none;
-                }
-
-                & section section {
-                    background: #f9f9f9;
+                & section {
 
                     & h4 {
                         margin-block-start: 1.5em;
                         margin-block-end: .5em;
                     }
+
+                    & table .on-compact-hide {
+                        display: none;
+                    }
+
+                    & table+span.visible {
+                        display: block;
+                        margin-top: 1em;
+                    }
+                }
+
+                & section section {
+                    background: #f9f9f9;
 
                     &+.entity-card {
                         display: block;
