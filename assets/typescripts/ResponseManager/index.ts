@@ -252,8 +252,8 @@ export default class {
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
             this.bubble.querySelector('.text')?.classList.remove('text');
             document.getElementById('bubble-container')?.classList.add('big');
-
-            this.bubble.appendChild(this.renderTreeToHTML(unite, false));
+            const tree = await this.renderTreeToHTML(unite, false);
+            this.bubble.appendChild(tree);
 
         }
     }
@@ -270,7 +270,7 @@ export default class {
         return this;
     }
 
-    private renderTreeToHTML(unite: Unite, with_title: boolean = true) {
+    private async renderTreeToHTML(unite: Unite, with_title: boolean = true) {
 
         const section = document.createElement('section');
         if (with_title) {
@@ -279,9 +279,11 @@ export default class {
             section.appendChild(h4);
         }
 
-        if (unite?.users?.length)
-            section.appendChild(table_template(unite.users as User[]));
-        else
+        if (unite?.users?.length) {
+            const table = await table_template(unite.users as User[]);
+            section.appendChild(table);
+
+        } else
             section.innerHTML += '<span>Aucun personnel à afficher pour cette unité.</span>';
 
         if (!unite.hasOwnProperty('children')) {
@@ -289,11 +291,18 @@ export default class {
         }
 
         if (unite.children && unite.children.length > 0) {
+
             const p = document.createElement('p');
-            unite.children.forEach(child => {
-                p.appendChild(this.renderTreeToHTML(child));
+
+            let i = 0;
+            for (const child of unite.children) {
+                const subtree = await this.renderTreeToHTML(child)
+
+                p.appendChild(subtree);
                 p.innerHTML += this.addUniteCard(child, []);
-            });
+
+            };
+
             section.appendChild(p);
         }
 
@@ -481,7 +490,7 @@ export default class {
     }
 }
 
-function table_template(users: User[]): HTMLTableElement {
+async function table_template(users: User[]): Promise<HTMLTableElement> {
 
     const fonctions = {
         'C': "Commandant d'unité",
