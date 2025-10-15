@@ -79,7 +79,7 @@ class UserRepository extends ServiceEntityRepository
         return $persons;
     }
 
-    public function findByPhone($numeroNettoye)
+    public function findByPhoneOrNigend($numeroNettoye)
     {
         $sql = "
             SELECT 
@@ -101,9 +101,10 @@ class UserRepository extends ServiceEntityRepository
                 REPLACE(REPLACE(u.tph, ' ', ''), '+', '') != REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '')
             )
             OR REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe
+            OR nigend = :nigend
         ";
 
-        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye"]); // . $numeroNettoye]);
+        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye", 'nigend' => $numeroNettoye]); // . $numeroNettoye]);
 
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();

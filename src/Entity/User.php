@@ -14,10 +14,10 @@ class User
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(length: 1, nullable: true)]
     private ?string $fonction = null;
 
-    #[ORM\Column(length: 30, nullable: true)]
+    #[ORM\Column(length: 10, nullable: true)]
     private ?string $grade = null;
 
     #[ORM\Column(length: 50)]
@@ -26,45 +26,48 @@ class User
     #[ORM\Column(length: 50)]
     private ?string $prenom = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 8)]
     private ?string $specificite = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 18, nullable: true)]
     private ?string $tph = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 18, nullable: true)]
     private ?string $port = null;
 
-    #[ORM\Column(length: 10, nullable: true)]
+    #[ORM\Column(length: 5, nullable: true)]
     private ?string $tph_interne = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $mail = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Unite $unite = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 4, nullable: true)]
     private ?string $qualification = null;
 
-    #[ORM\Column(length: 8, nullable: true)]
+    #[ORM\Column(length: 4, nullable: true)]
     private ?string $positionAdministrative = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 10, nullable: true)]
     private ?string $accountStatus = null;
 
-    #[ORM\Column(length: 8, nullable: true)]
+    #[ORM\Column(length: 3, nullable: true)]
     private ?string $civilite = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 14, nullable: true)]
     private ?string $employeeType = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $grade_long = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 9, nullable: true)]
     private ?string $statutCorps = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nigend = null;
 
     public function getId(): ?int
     {
@@ -271,6 +274,18 @@ class User
     public function setStatutCorps(?string $statutCorps): static
     {
         $this->statutCorps = $statutCorps;
+
+        return $this;
+    }
+
+    public function getNigend(): ?int
+    {
+        return $this->nigend;
+    }
+
+    public function setNigend(?int $nigend): static
+    {
+        $this->nigend = $nigend;
 
         return $this;
     }

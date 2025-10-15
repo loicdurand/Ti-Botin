@@ -44,6 +44,8 @@ class ApiController extends AbstractController
         $adresses = $manager->getRepository(Adresse::class)->findAll();
         foreach ($adresses as $adr) {
             $unites = $adr->getUnites();
+            if (count($unites) === 0)
+                continue;
             $output[] = [
                 'id' => $adr->getId(),
                 'lat' => $adr->getLat(),
@@ -142,7 +144,7 @@ class ApiController extends AbstractController
             $output[] = [
                 // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
                 'type' => 'person',
-                'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
+                'data' => $manager->getRepository(User::class)->findByPhoneOrNigend($numeroNettoye)
             ];
             return $this->json($output);
         } catch (\Throwable $th) {
