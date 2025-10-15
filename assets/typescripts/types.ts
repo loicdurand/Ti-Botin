@@ -1,5 +1,5 @@
 export type Words = { [key: string]: string }
-export type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name';
+export type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name' | 'Fonction' | 'Liste';
 
 export type AnalysisResult = {
     type: 'unite' | 'person' | 'number' | 'unknown';
@@ -7,7 +7,7 @@ export type AnalysisResult = {
     city: string | null;
     number: string | null;
     attributes: string[];
-    message: string;
+    liste: string | null;
 }
 
 export type Point = {
@@ -31,7 +31,9 @@ export type Unite = {
     tph: string,
     mail: string,
     parent: string,
-    found_column: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
+    children?: Unite[],
+    found_column?: 'code' | 'telephone_number' | 'other' // Indique si unité trouvée par son TPH ou code unite,
+    users?: User[]
 }
 
 export type User = {

@@ -1,4 +1,5 @@
-import matchers from "@testing-library/jest-dom/types/matchers";
+import { stat } from "fs";
+import { Unite } from "../types";
 import { pluralize } from "../utils/str";
 
 const hints = {
@@ -14,6 +15,7 @@ const hints = {
         "Je ne pas vous vexer, mais je n'ai rien compris à votre demande.",
         "Pardon?",
         "plaît-il?",
+        "Votre demande n'est pas assez précise pour moi. Veuillez reformuler.",
         "Pourriez-vous reformuler votre demande, s'il vous plaît?"
     ],
     error_hints: [
@@ -80,6 +82,13 @@ const hints = {
         "Ôtez-moi d'un doute. Vous cherchez quel unité?",
         "Hum... Laquelle choisir?"
     ],
+    init_choose_list_unites_hints: [
+        "Je peux fournir la liste des personnels demandés sous forme de tableau. Indiquez moi simplement pour quelle unité:",
+        "Précisez l'unité sur laquelle porte votre recherche:",
+        "En ne conservant que l'une de ces unités, je peux vous présenter davantage de résultats.",
+        "En me concentrant sur une seule unité, je pourrai vous procurer des résultats plus pertinents:"
+
+    ],
     init_ask_unite_hints: [
         "Indiquez-nous le code de votre unité. Ainsi, lorsque vous demanderez les infos d'une personne en ne fournissant que son prénom, vous obtiendrez en priorité les informations de personnes dans votre unité.",
         "Quel le code de votre unité? Celà nous permettra de vous fournir des réponses plus pertinentes",
@@ -123,6 +132,33 @@ const hints = {
             `J'ai trouvé ${n} ${pluralize(n, 'personnel')} dont ${cols} ${pluralize(n, 'correspond', 'correspondent')} à la valeur que vous avez saisie.`,
             `La valeur que vous avez saisie concorde avec ${cols} de ${pluralize(n, 'ce personnel', 'ces personnels')}:`
         ];
+    },
+
+    list_unite_intro_hints: ({ len: n, term, city }: { len: number, term: string, city: string | null }) => {
+        if (city === null && term.toLowerCase() !== 'comgendgp')
+            return [
+                `Vous n'avez pas précisé de ville dans laquelle lancer ma recherche. Je vous fournis donc une liste des ${term.toUpperCase()} que j'ai pu trouver.
+                Au total, j'ai compté ${n} ${pluralize(n, 'unité')}:
+                `
+            ];
+        else
+            return [
+                `J'ai trouvé ${n} ${pluralize(n, 'unité')} correspondant à vos critères de recherche.`
+            ];
+    },
+
+    list_users_intro_hints: ({ len: n, words, unite }: { len: number, words: { [K in 'statut' | 'qualification']: string[] }, unite: string }) => {
+        let statut = '';
+        let qualification = ''
+        if (words.hasOwnProperty('statut'))
+            statut = ' ayant le statut de ' + words['statut'].join(', ');
+        if (words.hasOwnProperty('qualification'))
+            qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
+
+        return [
+            `${unite} ${n ? `compte ${n}` : 'ne compte aucun'} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')}.`,
+            `${n === 0 ? 'Aucun' : n} ${pluralize(n, 'personnel')}${[statut, qualification].filter(Boolean).join(' et')} ${n === 0 ? "n'a" : n > 1 ? 'ont' : 'a'} été trouvé au sein de ${unite}.`
+        ];
     }
 
 };
@@ -161,6 +197,12 @@ const responder = {
                     break;
                 case 'varied_results_user':
                     target_hints = target.varied_results_user_hints(target.context.args);
+                    break;
+                case 'list_unite_intro':
+                    target_hints = target.list_unite_intro_hints(target.context.args);
+                    break;
+                case 'list_users_intro':
+                    target_hints = target.list_users_intro_hints(target.context.args);
                     break;
                 default:
                     break;

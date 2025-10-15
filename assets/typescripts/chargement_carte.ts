@@ -75,9 +75,9 @@ export default async function (handleMarkerClick: Function) {
             // Centrer et zoomer sur le département
             map.fitBounds(deptLayer.getBounds(), {
                 padding: [0, 0],
-                maxZoom: 10
+                // maxZoom: 10
             });
-            map.setZoom(10);
+            map.setZoom(11);
         })
         .catch(error => console.error('Erreur chargement GeoJSON:', error));
 

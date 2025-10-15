@@ -1,7 +1,7 @@
 import { normalizeAccents, pluralize } from '../utils/str';
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
-import { Unite, User } from '../types';
+import { AnalysisResult, Unite, User } from '../types';
 
 // let index = 0;
 
@@ -128,19 +128,22 @@ export default class {
                 this.bubble.innerHTML += this.addUserCard(data[0], attrs);
             });
         } else {
-
             const that = this;
             const this_func = this.printPersonMessage;
 
             if (!this.isKnownUnite()) {
 
-                this.typeMessage(this.bubble, this.responder.init_many_results);
-                this.bubble = this.bubbleBuilder('input-bubble');
+                // this.typeMessage(this.bubble, this.responder.init_ask_unite, () => {
+                // this.bubble = this.bubbleBuilder('input-bubble');
+                this.bubble.classList.add('input-bubble')
                 this.typeMessage(this.bubble, this.responder.init_ask_unite);
                 this.bubble.appendChild(this.addPrompt(function (this: HTMLInputElement, e: Event) {
                     localStorage.setItem(`${STORAGE_KEY}_unite`, this.value);
+                    that.bubble = that.bubbleBuilder('received');
                     this_func.apply(that, [data, attrs]);
                 }));
+                // });
+
 
             } else {
                 const userInSameUnite = data.find(user => user.code_unite == localStorage.getItem(`${STORAGE_KEY}_unite`))
@@ -170,6 +173,91 @@ export default class {
         }
     }
 
+    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult) {
+        this.bubble.classList.remove('loading');
+        this.bubble.id = "liste-personnels-bubble";
+        const nb_unites = data.length;
+        // On défini le contexte pour notre message
+        this.responder.list_unite_intro = {
+            len: nb_unites,
+            term: analyzed.term,
+            city: analyzed.city
+        };
+        // On affiche une petite intro
+        await this.typeMessage(this.bubble, this.responder.list_unite_intro);
+
+        // CAS 1: LA VILLE N'A PAS ÉTÉ PRÉCISÉE: Ex: liste des opj de cgd -> On fait préciser
+        if (data.length > 1) {
+            // boucle sur les unités trouvées
+            let i = 0;
+            for (const unite of data) {
+                i++;
+                const len = unite?.users?.length || 0;
+                this.responder.list_users_intro = {
+                    len,
+                    words,
+                    unite: unite.cn
+                };
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                this.bubble.innerHTML += `
+                    <h3>${i}. ${unite.code} - <strong>${unite.name}</strong></h3>
+                    <span class="text"></span>`;
+
+                await this.typeMessage(this.bubble, this.responder.list_users_intro);
+
+                // if (!len && unite.children?.length) {
+                //     this.bubble.querySelector('.text')?.classList.remove('text');
+                //     this.bubble.innerHTML += '<br/><br/><span class="text bold"></span>';
+                //     await this.typeMessage(this.bubble, `Souhaitez-vous afficher les résultats pour les ${unite.children?.length} unités filles?`);
+                // }
+
+            };
+
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            this.bubble.innerHTML += '<br/><br/><span class="text bold"></span>';
+            await this.typeMessage(this.bubble, this.responder.init_choose_list_unites);
+
+
+            let statut = '';
+            let qualification = ''
+            if (words.hasOwnProperty('statut'))
+                statut = ' ayant le statut de ' + words['statut'].join(', ');
+            if (words.hasOwnProperty('qualification'))
+                qualification = ' étant ' + words['qualification'].map(w => w.toUpperCase()).join(', ');
+            const phrase = [statut, qualification].filter(Boolean).join(' et')
+            this.bubble.classList.add('input-bubble');
+            this.bubble.appendChild(this.addSelector(data.map(unite => ({ id: '' + unite.code, label: `${unite.code} - ${unite.name}` })), phrase.split(' '), function (this: HTMLInputElement, e: Event) {
+                const code = (e.target as HTMLInputElement)?.value;
+                const unite = data.find(unite => unite.code == +code);
+                if (unite) {
+                    console.log(unite);
+                }
+            }));
+        } else {
+
+            // C2: UNE SEULE UNITÉ EN RÉSULTAT:
+            // ON AFFICHE UN ARBRE SEMBLABLE À CELUI DE L'ANNUAIRE GEND
+            const unite = data[0];
+            const len = unite?.users?.length || 0;
+            this.responder.list_users_intro = {
+                len,
+                words,
+                unite: unite.cn
+            };
+            this.bubble.querySelector('.text')?.classList.remove('text');
+
+            const unite_card = await this.addUniteCard(unite, []);
+            this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
+
+            await this.typeMessage(this.bubble, this.responder.list_users_intro);
+            this.bubble.querySelector('.text')?.classList.remove('text');
+            document.getElementById('bubble-container')?.classList.add('big');
+
+            this.bubble.appendChild(this.renderTreeToHTML(unite, false));
+
+        }
+    }
+
     public printUnknownMessage(): this {
         this.bubble.classList.remove('loading');
         this.typeMessage(this.bubble, this.responder.unknown);
@@ -180,6 +268,36 @@ export default class {
         this.bubble.classList.remove('loading');
         this.typeMessage(this.bubble, this.responder.error);
         return this;
+    }
+
+    private renderTreeToHTML(unite: Unite, with_title: boolean = true) {
+
+        const section = document.createElement('section');
+        if (with_title) {
+            const h4 = document.createElement('h4');
+            h4.innerHTML = `${unite.code} -  <strong>${unite.name}</strong>`;
+            section.appendChild(h4);
+        }
+
+        if (unite?.users?.length)
+            section.appendChild(table_template(unite.users as User[]));
+        else
+            section.innerHTML += '<span>Aucun personnel à afficher pour cette unité.</span>';
+
+        if (!unite.hasOwnProperty('children')) {
+            return section;
+        }
+
+        if (unite.children && unite.children.length > 0) {
+            const p = document.createElement('p');
+            unite.children.forEach(child => {
+                p.appendChild(this.renderTreeToHTML(child));
+                p.innerHTML += this.addUniteCard(child, []);
+            });
+            section.appendChild(p);
+        }
+
+        return section;
     }
 
     private isKnownUnite() {
@@ -223,7 +341,8 @@ export default class {
             <strong>${unite.name}</strong>
         </div>
         <div class="entity-contact" title="Mail: ${unite.mail}&#10;Téléphone: ${unite.tph}">
-            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${unite.mail}</div>
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;
+                <a href="mailto:${unite.mail}">${unite.mail}</a></div>
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${unite.tph}</div>
         </div>
         <div class="entity-other">
@@ -278,7 +397,7 @@ export default class {
             <div class="entity-unit display-unite">${user.unite} (${user.code_unite})</div>
         </div>
         <div class="entity-contact" title="Mail: ${user.mail}&#10;Téléphone: ${user.tph}&#10;Portable: ${user.port}&#10;Qualification: ${user.qualification}&#10;Spécificité: ${user.specificite}">
-            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${user.mail}</div>
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;<a href="mailto:${user.mail}">${user.mail}</a></div>
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${user.tph}</div>
             <div class="entity-attribute display-numero-port"><span class="entity-contact-icon">📱</span>&nbsp;${user.port}</div>
         </div>
@@ -302,7 +421,7 @@ export default class {
 
     }
 
-    private addSelector(data: { id: string, label: string }[], attrs: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
+    private addSelector(data: { id: string, label: string }[], complements: string[], cb: ((this: HTMLInputElement, ev: Event) => any) | null): HTMLElement {
         const group = document.createElement('group')
         group.classList.add('column-radios');
         data.forEach(({ id, label }) => {
@@ -311,6 +430,7 @@ export default class {
             input.setAttribute('type', 'radio');
             input.setAttribute('name', 'entity-radio');
             input.setAttribute('value', id);
+            input.dataset.liste = complements.join(' ');
             input.classList.add('prompt-input');
             if (cb)
                 input.addEventListener('change', cb);
@@ -326,35 +446,114 @@ export default class {
         return group;
     }
 
-    private typeMessage(element: HTMLElement, text: string, cb: Function | null = null) {
-        const max_duration = 1000;
-        const speed = this.speed * text.length > max_duration ? Math.round(max_duration / text.length) : this.speed;
-        const textSpan = element.querySelector('.text');
-        let i = 0;
+    private async typeMessage(element: HTMLElement, text: string, cb: Function | null = null): Promise<void> {
+        return new Promise((resolve) => {
+            const max_duration = 1000;
+            const speed = this.speed * text.length > max_duration ? Math.round(max_duration / text.length) : this.speed;
+            const textSpan = element.querySelector('.text');
+            let i = 0;
 
-        function typeChar() {
-            if (i < text.length) {
-                if (textSpan === null)
-                    return;
-                textSpan.textContent += text.charAt(i); // Ajoute un char
-                textSpan.classList.add('visible'); // Rend visible avec la transition CSS
-                i++;
-                setTimeout(typeChar, speed);
-            } else {
-                // Fin du typing : virer la classe et le curseur
-                element.classList.remove('typing');
-                element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
-                setTimeout(() => {
-                    const bubbleCtnr = document.querySelector('#bubble-container .row');
-                    bubbleCtnr && setTimeout(() => {
-                        bubbleCtnr.scrollTop = bubbleCtnr.scrollHeight;
-                    }, 300);
-                    cb && cb();
+            function typeChar() {
+                if (i < text.length) {
+                    if (textSpan === null)
+                        return;
+                    textSpan.textContent += text.charAt(i); // Ajoute un char
+                    textSpan.classList.add('visible'); // Rend visible avec la transition CSS
+                    i++;
+                    setTimeout(typeChar, speed);
+                } else {
+                    // Fin du typing : virer la classe et le curseur
+                    element.classList.remove('typing');
+                    element.style.setProperty('--after-display', 'none'); // Ou via CSS si tu préfères
+                    setTimeout(() => {
+                        const bubbleCtnr = document.querySelector('#bubble-container .row');
+                        bubbleCtnr && setTimeout(() => {
+                            bubbleCtnr.scrollTop = bubbleCtnr.scrollHeight;
+                        }, 300);
+                        resolve(cb && cb());
 
-                }, 300); // Appel du callback s'il y en a un
+                    }, 300); // Appel du callback s'il y en a un
+                }
             }
-        }
 
-        typeChar(); // Lance le premier timeout
+            typeChar(); // Lance le premier timeout
+        })
     }
+}
+
+function table_template(users: User[]): HTMLTableElement {
+
+    const fonctions = {
+        'C': "Commandant d'unité",
+        'A': "Commandant d'unité en second",
+        'S': "Second"
+    };
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tr = document.createElement('tr');
+    ['Grade', 'Nom Prénom', 'Spéc.', 'Tph fixe', 'Néo', 'Mail'].map(term => {
+        const th = document.createElement('th');
+        th.setAttribute('scope', 'col');
+        if (['Spéc.', 'Tph fixe', 'Néo'].includes(term))
+            th.classList.add('on-compact-hide');
+        th.textContent = term;
+        if (term === 'Spéc.')
+            th.setAttribute('title', 'Spécificité');
+        tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    users.map(user => {
+        const tr = document.createElement('tr');
+
+        const td1 = document.createElement('td');
+        td1.innerHTML = ['C', 'A', 'S'].includes(user.fonction) ?
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M341.5 45.1C337.4 37.1 329.1 32 320.1 32C311.1 32 302.8 37.1 298.7 45.1L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L320.1 481.6L464.4 555C472.4 559.1 482.1 558.3 489.4 553C496.7 547.7 500.4 538.8 499 529.8L473.7 369.9L588.1 255.4C594.5 249 596.7 239.6 593.9 231C591.1 222.4 583.8 216.1 574.8 214.7L415 189.3L341.5 45.1z"/></svg>' : '';
+        td1.innerHTML += user.grade;
+        if (user.fonction === 'C') {
+            td1.classList.add('gold');
+            td1.setAttribute('title', fonctions[user.fonction as 'C'])
+        } else if (['A', 'S'].includes(user.fonction)) {
+            td1.classList.add('silver');
+            td1.setAttribute('title', fonctions[user.fonction as 'C' | 'A']);
+        }
+        tr.appendChild(td1);
+
+        const td2 = document.createElement('td');
+        td2.textContent = user.prenom + ' ' + user.nom;
+        tr.appendChild(td2);
+
+        const td3 = document.createElement('td');
+        td3.textContent = user.qualification + (user.specificite != "" ? " " + user.specificite : "");
+        td3.classList.add('on-compact-hide');
+        tr.appendChild(td3);
+
+        const td4 = document.createElement('td');
+        td4.textContent = user.tph.replace(/\s/g, '.');
+        td4.classList.add('on-compact-hide');
+        tr.appendChild(td4);
+
+        const td5 = document.createElement('td');
+        td5.textContent = user.port.replace(/\s/g, '.');
+        td5.classList.add('on-compact-hide');
+        tr.appendChild(td5);
+
+        const td6 = document.createElement('td');
+        const a = document.createElement('a');
+        a.setAttribute('href', `mailto:${user.mail}`);
+        a.innerHTML = '<span class="entity-contact-icon">📧</span>&nbsp;' + user.mail.replace(/@gend.*$/, '');
+        td6.appendChild(a);
+        td6.setAttribute('title', user.mail);
+        tr.appendChild(td6);
+
+        tbody.appendChild(tr);
+
+    });
+
+    table.appendChild(tbody);
+
+    return table;
 }

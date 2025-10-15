@@ -17,5 +17,15 @@ export const MAIL_TERMS = [
 ];
 
 export const ADRESSE_TERMS = [
-    'adresse', 'postale', 'rue', 'commune', 'ville', 'endroit', 'lieu', 'trouve', 'est', 'etre'
+    'adresse', 'postale', 'rue', 'commune', 'ville', 'endroit', 'lieu', 'trouve'
+];
+
+export const RECHERCHE_CDU_TERMS = [
+    'commande', 'commandant', 'cdt', 'c1'
+]
+export const RECHERCHE_ADJOINT_TERMS = [
+    'c2', 'adjoint'
+];
+export const RECHERCHE_FONCTION_TERMS = [
+    ...RECHERCHE_CDU_TERMS, ...RECHERCHE_ADJOINT_TERMS
 ];

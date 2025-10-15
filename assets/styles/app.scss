@@ -1,5 +1,6 @@
 @use './starter-complet';
 @use './sidebar.scss';
+@use './bubble-container.scss';
 
 @keyframes gradientFlow {
     0% {
@@ -39,6 +40,11 @@ body {
     }
 }
 
+h3,
+h4 {
+    font-weight: initial;
+}
+
 #carte-container {
     // height: 60%;
     // width: 100%;
@@ -71,342 +77,6 @@ body {
 .main-content {
     height: 90vh;
     position: relative;
-}
-
-#bubble-container {
-    height: 90vh;
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 400;
-    background-color: rgba(0, 0, 0, 0.1);
-    padding-bottom: 1em;
-
-    & .row {
-        overflow-y: auto;
-        height: 100%;
-
-        & .bubble:last-child {
-            margin-bottom: 5em;
-        }
-
-        & .bubble {
-            min-height: 3em;
-            font-style: italic;
-            display: inline;
-            float: right;
-            width: auto;
-            // margin: 0 1% 1em auto;
-            margin: 3% 1em 0 1em;
-            max-width: 100%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            min-width: 50%;
-            max-width: 85%;
-
-            /* Messages reçus (à gauche, de l'API ou réponses) */
-            &.message-received {
-                align-self: flex-start;
-                background: #ffffff;
-                /* Blanc */
-                color: #000;
-                border-bottom-left-radius: 4px;
-                /* Coin plat à gauche */
-                margin-right: 10%;
-                $base: #94c6fd;
-
-                $dots: 3;
-                $time: 150ms;
-
-                &.loading {
-                    font-size: .75em;
-                    font-size: 0.75em;
-                    padding: .5em 1em;
-                    min-height: 0;
-
-                    span {
-                        background: $base;
-                        display: inline-block;
-                        height: .3em;
-                        width: .3em;
-                        margin-left: 5px;
-
-                        will-change: opacity;
-                        -webkit-animation: fadeinout (($time * $dots) + ($time + 1000ms)) infinite;
-                        animation: fadeinout (($time * $dots) + ($time + 1000ms)) infinite;
-                    }
-
-                    @for $i from 1 through $dots {
-                        span:nth-child(#{$i}) {
-                            -webkit-animation-delay: $time * $i;
-                            animation-delay: $time * $i;
-                        }
-                    }
-                }
-
-                h3 {
-                    margin-block: .5em;
-                }
-
-                .entity-card {
-                    background: #f9f9f9;
-                    /* Fond légèrement plus clair que la bulle */
-                    border-radius: 10px;
-                    padding: 10px;
-                    margin: 5px 0;
-                    cursor: pointer;
-                    /* Cliquable pour zoom/action */
-                    transition: background 0.2s;
-
-                    &:hover,
-                    &.expanded {
-                        background: #e0e0e0;
-
-                        /* Hover pour feedback */
-                        & .entity-attribute {
-                            display: block;
-                        }
-                    }
-
-                    &.display-fixe .entity-attribute.display-numero-fixe {
-                        display: block;
-                    }
-
-                    &.display-port .entity-attribute.display-numero-port {
-                        display: block;
-                    }
-
-                    &.display-mail .entity-attribute.display-mail {
-                        display: block;
-                    }
-
-                    &.display-adresse .entity-attribute.display-adresse {
-                        display: block;
-                    }
-
-                    .entity-attribute {
-                        display: none;
-                    }
-                }
-
-                .entity-header {
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                    font-size: 14px;
-                }
-
-                .entity-unit {
-                    font-size: 12px;
-                    color: #555;
-                }
-
-                .entity-details {
-                    display: inline-block;
-                    font-size: 12px;
-                    color: #333;
-                    margin-top: 5px;
-                }
-
-                .entity-contact {
-                    display: inline;
-                    margin-top: 5px;
-                    font-size: 12px;
-                    color: #007bff;
-                    /* Bleu cliquable */
-                }
-
-                .entity-contact-icon {
-                    font-size: 14px;
-                }
-
-                /* Ajuste la bulle pour la carte */
-                .message-bubble .entity-card {
-                    max-width: 100%;
-                    /* Prend toute la largeur de la bulle */
-                }
-
-                /*
-                 * effet "en train de taper au clavier"
-                 */
-                .text {
-                    /* Le texte s'affiche char par char, avec une transition fluide */
-                    display: inline-block;
-                    opacity: 0;
-                    transition: opacity 0.1s ease;
-                    /* Rendre l'apparition douce */
-                }
-
-                .text.visible {
-                    opacity: 1;
-                }
-
-                /* Curseur clignotant pour simuler le typing (optionnel) */
-                .message-received::after {
-                    content: '|';
-                    animation: blink 1s infinite;
-                    margin-left: 2px;
-                }
-
-                @keyframes blink {
-
-                    0%,
-                    50% {
-                        opacity: 1;
-                    }
-
-                    51%,
-                    100% {
-                        opacity: 0;
-                    }
-                }
-
-                /* Arrêter le curseur une fois fini */
-                .message-received.typing::after {
-                    display: inline-block;
-                }
-
-                /*
-                  * fin effet "en train de taper au clavier"
-                  */
-
-            }
-
-            &.message-received::after {
-                left: -8px;
-                bottom: 0;
-                border-right-color: #ffffff;
-                /* Pointe vers la droite */
-                border-bottom-color: #ffffff;
-            }
-
-            /* Messages envoyés */
-            &.message-sent {
-                align-self: flex-end;
-                background: #dcf8c6;
-                /* Vert clair WhatsApp */
-                color: #000;
-                border-bottom-right-radius: 4px;
-                transform: translateY(100%) translateX(100%);
-                /* Position initiale "hors écran" – on override par classe */
-                transition: all 0.075s ease-out;
-
-                /* Transition fluide pour l'apparition */
-                &.appear {
-                    opacity: 1;
-                    transform: translateY(0);
-                    /* Glisse vers le haut en place */
-                }
-            }
-
-            &.message-sent::after {
-                right: -8px;
-                bottom: 0;
-                border-left-color: #dcf8c6;
-                /* Pointe vers la gauche */
-                border-bottom-color: #dcf8c6;
-            }
-
-            /* Timestamps ou métadonnées (optionnel) */
-            &.message-meta {
-                font-size: 11px;
-                color: #666;
-                margin-top: 4px;
-                text-align: right;
-                /* Pour envoyés */
-            }
-
-        }
-
-        & .bubble.input-bubble {
-            background: #ffffff;
-            /* Même fond que message-received */
-            border-radius: 18px;
-            padding: 8px 12px;
-            /* Padding interne */
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            /* Ombre légère */
-            align-items: center;
-            width: -webkit-fill-available;
-
-
-            /* L'input lui-même */
-            & .prompt-input {
-                border: none;
-                background: transparent;
-                width: 100%;
-                color: #000;
-                outline: none;
-                line-height: 2;
-                padding: 0 1em;
-                margin-top: 1ch;
-            }
-
-            /* Placeholder stylé */
-            & .prompt-input::placeholder {
-                color: #999;
-                opacity: 1;
-            }
-
-            /* Focus : effet subtil comme une bulle active */
-            & .prompt-input:focus {
-                background: #f5f5f5;
-                /* Gris très clair */
-                border-radius: 12px;
-                /* Renforce l'effet bulle */
-            }
-
-            // Boutons radio pour choisir un utilisateur parmis une sélection
-            & .column-radios {
-                display: flex;
-                border-radius: 3px;
-                overflow: hidden;
-                border: 1px solid #b6b6b6;
-                flex-direction: column;
-
-                & div {
-                    position: relative;
-                    flex: 1;
-                }
-
-                & input {
-                    width: 100%;
-                    height: 2ch;
-                    opacity: 0;
-                }
-
-                & label {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    color: #b6b6b6;
-                    width: 100%;
-                    height: 100%;
-                    background: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    pointer-events: none;
-                    border-right: 1px solid #b6b6b6;
-                }
-
-                & div:last-child label {
-                    border-right: 0;
-                }
-
-                & input:checked+label {
-                    background: #25d366;
-                    font-weight: 500;
-                    color: #fff;
-                }
-            }
-        }
-    }
 }
 
 #carte-container {
@@ -463,6 +133,11 @@ body {
     height: 5.5vh;
     width: 5.5vh;
     margin-right: .25vh;
+
+    & table thead th,
+    & table tbody td {
+        font-size: 6px;
+    }
 }
 
 #send-btn:hover {

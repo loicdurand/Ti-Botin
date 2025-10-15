@@ -15,6 +15,22 @@ use App\Entity\Adresse;
 class ApiController extends AbstractController
 {
 
+    private $commandement_terms = [
+        'cdu' => ['commande', 'commandant', 'cdt', 'c1', 'cc', 'cb', 'ccb', 'cbr', 'cpsig', 'cdu'],
+        'adjoint' => ['c2', 'adjoint', 'cba', 'cbra', 'cdua']
+    ];
+
+    private $liste_terms = [
+        'tous' => ['liste', 'list', 'tableau', 'table', 'personnels', 'pax'],
+        'statut' => ['militaires', 'militaire', 'mili', 'civils', 'civil'],
+        'qualification' => ['opj', 'apj', 'apja']
+    ];
+
+    private $liste_eq = [
+        'militaire' => ['militaires', 'militaire', 'mili'],
+        'civil' => ['civils', 'civil']
+    ];
+
     #[Route('/api/adresses', name: 'export_api_adresses')]
     public function api_adresses(EntityManagerInterface $manager): Response
     {
@@ -36,23 +52,8 @@ class ApiController extends AbstractController
     #[Route('/api/unite/{adresse_id}', name: 'export_api_adresse')]
     public function api_adresse(EntityManagerInterface $manager, string $adresse_id): Response
     {
-        // $output = [];
         $unites = $manager->getRepository(Unite::class)->findByAdresseId($adresse_id);
         return $this->json($unites);
-        // $unites = $manager->getRepository(Unite::class)->findBy(['adresse' => $adresse_id]);
-        // foreach ($unites as $unite) {
-        //     $adr = $unite->getAdresse(); 
-        //     $output[] = [
-        //         'id' => $unite->getId(),
-        //         'code' => $unite->getCode(),
-        //         'name' => $unite->getName(),
-        //         'lat' => $adr->getLat(),
-        //         'lon' => $adr->getLng(),
-        //         'label' => count($unites) > 1 ? $adr->getLigne1() : $unites[0]->getName()
-
-        //     ];
-        // }
-        // return $this->json($output);
     }
 
     #[Route('/api/chat-data', name: 'export_api_chatdata')]
@@ -66,6 +67,8 @@ class ApiController extends AbstractController
             'unites' => $manager->getRepository(Unite::class)->getDistinctUnitesTypes(),
             'communes' => $adrRepo->getDistinctCommunes(),
             'communes_alias'  => $adrRepo->getCommunesAlias(),
+            'commandement_terms' => $this->commandement_terms,
+            'liste_terms' => $this->liste_terms
 
         ];
         // dd($results['communes_alias']);
@@ -80,6 +83,7 @@ class ApiController extends AbstractController
             $data = json_decode($data);
             $type = $data->type ?? $data->type;
             $term = $data->term ?? $data->term;
+            $attributes = $data->attributes ?? $data->attributes;
             $city = $data->city ?? $data->city;
             $output = [
                 'type' => $type,
@@ -89,7 +93,21 @@ class ApiController extends AbstractController
             if ($type === 'person') {
                 $output['data'] = $manager->getRepository(User::class)->findByIdentity($term);
             } else if ($type === 'unite') {
-                $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+
+                // si recherche du type "qui commande, qui est l'adjoint, etc.."
+                if (count($attributes)) {
+                    $cdt_words = [];
+                    foreach ($this->commandement_terms as $fonction_type => $words) {
+                        foreach ($words as $word) {
+                            if (in_array($word,  $attributes))
+                                $cdt_words[] = $fonction_type;
+                        }
+                    }
+                    $output['type'] = 'person';
+                    $output['data'] = $manager->getRepository(User::class)->findByFonction($term, $city, $cdt_words);
+                } else {
+                    $output['data'] = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+                }
             }
             return $this->json($output);
         } catch (\Throwable $th) {
@@ -104,33 +122,79 @@ class ApiController extends AbstractController
     {
         $output = [];
         $data = $request->query->get('q') ?? $request->request->get('q');
+        try {
+            $data = json_decode($data);
+            $numeroNettoye = $data->number ? $this->nettoyerTelephone($data->number) : 'Z';
+
+            $numeroNettoye = strlen($numeroNettoye) > 8 ? substr($numeroNettoye, -9) : $numeroNettoye;
+
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'unite',
+                'data' => $manager->getRepository(Unite::class)->findByPhoneOrCodeUnite($numeroNettoye)
+            ];
+            $output[] = [
+                // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
+                'type' => 'person',
+                'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
+            ];
+            return $this->json($output);
+        } catch (\Throwable $th) {
+            return $this->json([
+                'error' => $th
+            ]);
+        }
+    }
+
+    #[Route('/api/get-list-of', name: 'export_api_getlistof')]
+    public function api_getlistof(Request $request, EntityManagerInterface $manager): Response
+    {
+        $data = $request->query->get('q') ?? $request->request->get('q');
         // try {
         $data = json_decode($data);
-        $numeroNettoye = $data->number ? $this->nettoyerTelephone($data->number) : 'Z';
+        $type = $data->type ?? $data->type;
+        $term = $data->term ?? $data->term;
+        $city = $data->city ?? $data->city;
+        $liste = $data->liste ?? $data->liste;
+        $liste = explode(' ', $data->liste); // Ex: ['liste', 'personnels', 'opj']
 
-        // if (strlen($numeroNettoye) < 6) { // si moins de 6 chiffres, c'est un code unité
-        //     $output[] = [
-        //         'type' => 'unite',
-        //         'data' => $manager->getRepository(Unite::class)->findByCodeUnite(intval($numeroNettoye))
-        //     ];
-        //     return $this->json($output);
-        // } else {
-        // si n° de téléphone, on garde les 9 derniers chiffres
-        // on ne s'embête pas avec l'indicatif pays ou le 1er zéro
-        $numeroNettoye = strlen($numeroNettoye) > 8 ? substr($numeroNettoye, -9) : $numeroNettoye;
+        $liste_words = [];
+        foreach ($this->liste_terms as $type => $words) {
+            foreach ($words as $word) {
+                if (in_array($word,  $liste)) {
 
-        $output[] = [
-            // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
-            'type' => 'unite',
-            'data' => $manager->getRepository(Unite::class)->findByPhoneOrCodeUnite($numeroNettoye)
-        ];
-        $output[] = [
-            // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
-            'type' => 'person',
-            'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
-        ];
-        return $this->json($output);
-        // }
+                    if (!array_key_exists($type, $liste_words))
+                        $liste_words[$type] = [];
+
+                    if ($type === 'statut')
+                        $liste_words[$type][] = in_array($word, $this->liste_eq['militaire']) ? 'militaire' : 'civil';
+                    else if ($type === 'qualification')
+                        $liste_words[$type][] = $word;
+                }
+            }
+        }
+
+        // dd($liste_words); 
+        $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+
+        $j = 0;
+        foreach ($unites as $i => $unite) {
+            $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
+            // Si la recherche utilisateur était suffisemment précise pour ne ramener qu'une unité
+            // On ajoute les unités filles s'il y en a.
+            if (count($unites) === 1) {
+                $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
+                foreach ($unites_sub as $j => $unite_sub) {
+                    $unites_sub[$j]['users'] = $manager->getRepository(User::class)->findListeOf($unite_sub['code'], $liste_words);
+                }
+                $unites = $this->buildTree([$unites[$i], ...$unites_sub], $unite['uid']);
+            }
+        }
+
+        return $this->json([
+            'words' => $liste_words,
+            'data' => $unites
+        ]);
         // } catch (\Throwable $th) {
         //     return $this->json([
         //         'error' => $th
@@ -141,5 +205,32 @@ class ApiController extends AbstractController
     private function nettoyerTelephone($telephone)
     {
         return preg_replace('/[^0-9]|\s/', '', $telephone);
+    }
+
+    private function buildTree(array $unites, $uid): array
+    {
+        // Créer une map par UID
+        $uniteMap = [];
+        foreach ($unites as $unite) {
+            $uniteMap[$unite['uid']] = array_merge($unite, ['children' => []]);
+        }
+
+        $roots = [];
+        foreach ($unites as $unite) {
+            $mappedUnite = &$uniteMap[$unite['uid']]; // Référence pour éviter de recopier
+            if ($unite['parent'] !== null && str_starts_with($unite['parent'], $uid)) {
+                // Ajouter comme enfant du parent
+                if (isset($uniteMap[$unite['parent']])) {
+                    $uniteMap[$unite['parent']]['children'][] = &$mappedUnite;
+                } else {
+                    error_log("Parent {$unite['parent']} non trouvé pour l'unité {$unite['uid']}");
+                }
+            } else {
+                // C'est une racine
+                $roots[] = &$mappedUnite;
+            }
+        }
+
+        return $roots;
     }
 }

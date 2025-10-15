@@ -1,4 +1,5 @@
 import { normalizeAccents } from './typescripts/utils/str';
+import { buildTree } from './typescripts/utils/obj';
 import { getParent } from './typescripts/utils/document';
 import * as terms from './typescripts/lexic';
 import chargement_de_la_carte from "./typescripts/chargement_carte";
@@ -12,25 +13,40 @@ import { AnalysisResult, User, Unite, FetchResult } from './typescripts/types';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+  // Prompt send
+  const send = document.getElementById('send-btn') as HTMLButtonElement;
+  const input = document.getElementById('prompt-input') as HTMLInputElement;
+
+  send?.addEventListener('click', handleSendEvent);
+  input?.addEventListener('keyup', e => {
+    if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
+  });
+
   document.addEventListener('click', e => {
     const target = e.target as HTMLElement;
     if (!target)
       return;
 
-    if (target.matches('.entity-card *')) {
-      const bubble = getParent(target, '.bubble') as HTMLElement;
-      const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
-      entity_card.classList.toggle('expanded');
+    console.log(target);
+
+    if (target.matches('#liste-personnels-bubble .column-radios input')) {
+
+      handleListePersonnelsAffinerUniteClick(target as HTMLInputElement);
+
+    } else if (target.matches('.entity-card *')) {
+      const entity_card = getParent(target, '.entity-card') as HTMLElement;// bubble.querySelector('.entity-card') as HTMLElement;
+      if (target.matches('section section + .entity-card *')) {
+        const ctnr = document.getElementById('bubble-container');
+        ctnr?.classList.add('big');
+      } else {
+        entity_card.classList.toggle('expanded');
+      }
+    } else if (target.matches('#map')) {
+      document.getElementById('bubble-container')?.classList.remove('big');
     }
   })
 
   const map = await chargement_de_la_carte(handleMarkerClick);
-
-  // function markAsSurveilled(id: number) {
-  //   // Ex: Ajoute classe ou badge
-  //   const item = document.querySelector(`[onclick*="setView"]`);  // À raffiner
-  //   if (item) item.classList.add('surveillance');
-  // }
 
   async function handleMarkerClick(point: Point) {
     const { id: adresse_id, label } = point;
@@ -50,14 +66,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     map.setView([+unites[0].lat, +unites[0].lng], 11)
     responsemanager.printUniteMessage(unites, []);
 
-    // Ajoute signet si absent
-    // if (!signets.has(adresse_id)) {
-    //   signets.add(adresse_id);
-    //   addSignetToUI(unites);
-    // }
+  }
 
-    // Marque en surveillance (update UI)
-    // markAsSurveilled(adresse_id);
+  async function handleListePersonnelsAffinerUniteClick(target: HTMLInputElement) {
+
+    const label = target.nextElementSibling?.innerHTML?.replace(/^.*-\s/, '') || '';
+    const complement = target.dataset.liste
+
+    input.value = `Établis la liste des personnels ${complement} au sein de ${label}`;
+    send.dispatchEvent(new Event('click'));
 
   }
 
@@ -82,23 +99,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     { value: `comgend${deptLettres[deptCode]}`, aliasses: ['comgend'] }
   ];
 
+  const fonction_terms = Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat();
+  const liste_terms = Object.keys(chat_data.liste_terms).map(key => chat_data.liste_terms[key]).flat();
+
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
     .addWords([...chat_data.unites, 'marie-galante', 'unite', 'service', 'departement', 'brigade', 'compagnie', 'cie', 'gpt', 'ggd', 'sag', 'comgend'], 'Organization')
-    .addWords([...terms.TELEPHONE_TERMS, ...terms.MAIL_TERMS, ...terms.ADRESSE_TERMS], 'Attribute')
+    .addWords([
+      ...terms.TELEPHONE_TERMS,
+      ...terms.MAIL_TERMS,
+      ...terms.ADRESSE_TERMS,
+      ...fonction_terms
+    ], 'Attribute')
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
+    .addWords(liste_terms, 'Liste')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
-
-  // Prompt send
-  const send = document.getElementById('send-btn') as HTMLButtonElement;
-  const input = document.getElementById('prompt-input') as HTMLInputElement;
-
-  send?.addEventListener('click', handleSendEvent);
-  input?.addEventListener('keyup', e => {
-    if ((e as KeyboardEvent).key === 'Enter') handleSendEvent();
-  });
 
   async function handleSendEvent(): Promise<void> {
 
@@ -116,8 +133,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       responsemanager.addLoader();
 
       const analyzed: AnalysisResult = chat.analyzeMessage(message);
-
+      if (analyzed.type == "unknown" && chat?.getContext()?.hasOwnProperty('name')) {
+        analyzed.type = 'unite';
+        analyzed.term = (chat?.getContext() as Unite)?.name
+      }
       console.log(analyzed);
+
+      // Si la demande concerne une liste de personnels,
+      // on traite ça dans une autre fonction "getListeOf"
+      if (analyzed.liste)
+        return getListeOf(analyzed, responsemanager);
 
       // Fetch recherche API
       const fetch_url = analyzed.type === 'number' ? '/export/api/find-by-number' : '/export/api/search';
@@ -149,16 +174,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (analyzed.type == "unknown" && analyzed.attributes.length > 0 && chat.getContext() !== null) {
         const type = chat.getContext()?.hasOwnProperty('prenom') ? 'person' : 'unite';
+        console.log({ type });
         analyzed.type = type;
         analyzed.term = type == 'person' ? (chat.getContext() as User).prenom + ' ' + (chat.getContext() as User).nom : (chat.getContext() as Unite).name;
       }
 
       const { type: response_type, data }: FetchResult = json;
 
-      console.log(data);
-
       if (response_type == "person") {
-        if (data.length === 1) chat.setContext(data[0] as User);
+        if (data.length === 1) {
+          if (analyzed.attributes.filter(attr => fonction_terms.includes(attr))) {
+            chat.setContext({ name: (data[0] as User).unite } as Unite);
+          } else {
+            chat.setContext(data[0] as User);
+          }
+        }
         responsemanager.printPersonMessage(data as User[], analyzed.attributes);
       } else if (response_type == "unite") {
         if (data.length === 1) chat.setContext(data[0] as Unite);
@@ -169,31 +199,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     }, 1000);
 
-    // input.value = '';
+    //input.value = '';
   }
 
-  function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
-    const bubbleCtnr = document.querySelector('#bubble-container .row');
-    const bubble = document.createElement('div');
-    bubble.classList.add('bubble');
 
-
-
-    if (sens === 'received' || sens === 'input-bubble')
-      bubble.classList.add('typing');
-    if (sens === 'input-bubble') {
-      bubble.classList.add('input-bubble');
-      bubble.classList.add('received');
-    } else {
-      bubble.classList.add(`message-${sens}`);
-    }
-    const span = document.createElement('span');
-    span.classList.add('text');
-    bubble.appendChild(span);
-    bubbleCtnr?.appendChild(bubble);
-    return bubble;
-
-  }
 
 
 });
+
+async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseManager) {
+  // Fetch recherche API
+  const fetch_url = '/export/api/get-list-of';
+  const res = await fetch(fetch_url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `q=${encodeURIComponent(JSON.stringify(analyzed))}`
+  });
+
+  if (!res.ok)
+    return false;
+
+  let json = await res.json();
+  const { data, words } = json;
+
+  console.log({ data });
+
+  responsemanager.printListeMessage(data, words, analyzed);
+}
+
+function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {
+  const bubbleCtnr = document.querySelector('#bubble-container .row');
+  const bubble = document.createElement('div');
+  bubble.classList.add('bubble');
+
+  if (sens === 'received' || sens === 'input-bubble')
+    bubble.classList.add('typing');
+  if (sens === 'input-bubble') {
+    bubble.classList.add('input-bubble');
+    bubble.classList.add('received');
+  } else {
+    bubble.classList.add(`message-${sens}`);
+  }
+  const span = document.createElement('span');
+  span.classList.add('text');
+  bubble.appendChild(span);
+  bubbleCtnr?.appendChild(bubble);
+  return bubble;
+
+}

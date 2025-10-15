@@ -13,6 +13,7 @@ use Doctrine\DBAL\Connection;
 class UniteRepository extends ServiceEntityRepository
 {
     private Connection $connection;
+    private const UNITE_FIELDS = 'adr.lng, adr.lat, un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail, un.departmentUID as uid, un.parentDepartmentUID as parent';
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -41,7 +42,7 @@ class UniteRepository extends ServiceEntityRepository
     {
         // 
         return $this->createQueryBuilder('un')
-            ->select('adr.lng, adr.lat, un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->select(self::UNITE_FIELDS)
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("adr.id = :id")
             ->setParameter('id', $adresse_id)
@@ -52,7 +53,7 @@ class UniteRepository extends ServiceEntityRepository
     public function findByCodeUnite($cleaned_number)
     {
         return $this->createQueryBuilder('un')
-            ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->select(self::UNITE_FIELDS)
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.code LIKE :CU")
             ->setParameter('CU', $cleaned_number . '%')
@@ -60,13 +61,24 @@ class UniteRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByParent($uid)
+    {
+        return $this->createQueryBuilder('un')
+            ->select(self::UNITE_FIELDS)
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.parentDepartmentUID LIKE :uid")
+            ->setParameter('uid', $uid . '%')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByIdentifier($term, $city)
     {
         $query = $this->createQueryBuilder('un')
-            ->select('un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capaciteJudiciaire, un.telephoneNumber as tph, un.mail')
+            ->select(self::UNITE_FIELDS)
             ->innerJoin('un.adresse', 'adr')
-            ->andWhere("un.name LIKE :term")
-            ->setParameter('term', '%' . $term . '%');
+            ->andWhere("LOWER(un.name) LIKE :term")
+            ->setParameter('term', $term . '%');
         if (!is_null($city)) {
             $query
                 ->andWhere("adr.commune = :city")
@@ -88,7 +100,7 @@ class UniteRepository extends ServiceEntityRepository
                 WHEN un.code LIKE :suffixe THEN 'code'
                 ELSE 'other'
             END AS found_column,
-            un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capacite_judiciaire, un.telephone_number as tph, un.mail
+            un.code, un.name, un.cn, adr.lat, adr.lng, un.name as label, un.subdivision, un.capacite_judiciaire, un.telephone_number as tph, un.mail, un.department_uid as uid, un.parent_department_uid as parent
             FROM unite un
             INNER JOIN adresse adr ON un.adresse_id = adr.id 
             WHERE REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '') LIKE :suffixe
@@ -100,29 +112,4 @@ class UniteRepository extends ServiceEntityRepository
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
     }
-
-    //    /**
-    //     * @return Unite[] Returns an array of Unite objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Unite
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

@@ -52,12 +52,13 @@ class UserRepository extends ServiceEntityRepository
         $split = explode(' ', $term, 2);
         $prenom = $split[0];
         $nom = count($split) > 1 ? $split[1] : null;
+
         $query = $this->createQueryBuilder('u')
             ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
             ->innerJoin('u.unite', 'un');
         if ($prenom !== '#') {
             $query
-                ->andWhere("u.prenom = :prenom")
+                ->andWhere("u.prenom = :prenom OR u.nom = :prenom")
                 ->setParameter('prenom', $prenom);
         }
 
@@ -108,28 +109,62 @@ class UserRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findByFonction($term, $city, $cdt_words)
+    {
+        $c1 = in_array("cdu", $cdt_words);
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        $query = $this->createQueryBuilder('u')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->innerJoin('u.unite', 'un')
+            ->innerJoin('un.adresse', 'adr')
+            ->andWhere("un.name LIKE :term AND u.fonction = :fonction")
+            ->setParameter('term', $term . '%')
+            ->setParameter('fonction', $c1 ? 'C' : 'A');
+        if (!is_null($city)) {
+            $query
+                ->andWhere("adr.commune = :city")
+                ->setParameter('city', $city);
+        }
+
+        $persons = $query
+            ->getQuery()
+            ->getResult();
+
+        return $persons;
+    }
+
+    public function findListeOf($code_unite, $liste)
+    {
+        /*
+         Ex: $liste = [
+            'tous' => ['liste', 'list', 'tableau', 'table', 'personnels'],
+            'statut' => ['militaires', 'civils'],
+            'qualification' => ['opj', 'apj', 'apja']
+        ]
+         */
+
+        $query = $this->createQueryBuilder('u')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->innerJoin('u.unite', 'un')
+            ->andWhere("un.code = :code")
+            ->setParameter('code', $code_unite);
+
+        if (!empty($liste['statut'])) {
+            $statut = $liste['statut'];
+            $query->andWhere("LOWER(u.statutCorps) IN (:statut)")
+                ->setParameter('statut', implode(',', $statut));
+        }
+
+        if (!empty($liste['qualification'])) {
+            $qualification = $liste['qualification'];
+            $query->andWhere("LOWER(u.qualification) IN (:qualification)")
+                ->setParameter('qualification', implode(',', $qualification));
+        }
+
+        $persons = $query
+            ->getQuery()
+            ->getResult();
+
+        return $persons;
+    }
 }
