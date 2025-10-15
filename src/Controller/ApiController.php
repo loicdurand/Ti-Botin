@@ -166,10 +166,11 @@ class ApiController extends AbstractController
         $term = $data->term ?? $data->term;
         $city = $data->city ?? $data->city;
         $liste = $data->liste ?? $data->liste;
+
         $data = [
             'type' => $type,
             'term' => $term,
-            'city' => $city,
+            'city' => is_null($city) ? 'X' : $city,
             'liste' => $liste
         ];
         $res = $this->getlist($data, true,  $manager);
@@ -279,7 +280,8 @@ class ApiController extends AbstractController
             }
         }
 
-        // dd($liste_words); 
+        if ($city === 'X')
+            $city = null;
         $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
 
         $j = 0;
