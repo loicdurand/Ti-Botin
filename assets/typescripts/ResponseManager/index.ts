@@ -234,7 +234,7 @@ export default class {
                 }
             }));
         } else {
-            document.getElementById('bubble-container')?.classList.add('big');
+
             // C2: UNE SEULE UNITÉ EN RÉSULTAT:
             // ON AFFICHE UN ARBRE SEMBLABLE À CELUI DE L'ANNUAIRE GEND
             const unite = data[0];
@@ -245,14 +245,13 @@ export default class {
                 unite: unite.cn
             };
             this.bubble.querySelector('.text')?.classList.remove('text');
-            // this.bubble.innerHTML += `
-            //         <h3>${unite.code} - <strong>${unite.name}</strong></h3>
-            //         <span class="text"></span>`;
+
             const unite_card = await this.addUniteCard(unite, []);
             this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
 
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
             this.bubble.querySelector('.text')?.classList.remove('text');
+            document.getElementById('bubble-container')?.classList.add('big');
 
             this.bubble.appendChild(this.renderTreeToHTML(unite, false));
 

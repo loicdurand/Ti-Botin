@@ -34,8 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       handleListePersonnelsAffinerUniteClick(target as HTMLInputElement);
 
     } else if (target.matches('.entity-card *')) {
-      const bubble = getParent(target, '.bubble') as HTMLElement;
-      const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
+      const entity_card = getParent(target, '.entity-card') as HTMLElement;// bubble.querySelector('.entity-card') as HTMLElement;
       entity_card.classList.toggle('expanded');
     } else if (target.matches('#map')) {
       document.getElementById('bubble-container')?.classList.remove('big');
