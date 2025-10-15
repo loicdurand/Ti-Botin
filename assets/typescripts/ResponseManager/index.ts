@@ -234,6 +234,7 @@ export default class {
                 }
             }));
         } else {
+            document.getElementById('bubble-container')?.classList.add('big');
             // C2: UNE SEULE UNITÉ EN RÉSULTAT:
             // ON AFFICHE UN ARBRE SEMBLABLE À CELUI DE L'ANNUAIRE GEND
             const unite = data[0];
@@ -244,18 +245,17 @@ export default class {
                 unite: unite.cn
             };
             this.bubble.querySelector('.text')?.classList.remove('text');
-            this.bubble.innerHTML += `
-                    <h3>${unite.code} - <strong>${unite.name}</strong></h3>
-                    <span class="text"></span>`;
+            // this.bubble.innerHTML += `
+            //         <h3>${unite.code} - <strong>${unite.name}</strong></h3>
+            //         <span class="text"></span>`;
+            const unite_card = await this.addUniteCard(unite, []);
+            this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
 
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
             this.bubble.querySelector('.text')?.classList.remove('text');
-            // this.bubble.innerHTML += '<br/>';
-            // const section = document.createElement('section');
-            document.getElementById('bubble-container')?.classList.add('big');
 
             this.bubble.appendChild(this.renderTreeToHTML(unite, false));
-            // this.bubble.appendChild(section);
+
         }
     }
 
@@ -293,6 +293,7 @@ export default class {
             const p = document.createElement('p');
             unite.children.forEach(child => {
                 p.appendChild(this.renderTreeToHTML(child));
+                p.innerHTML += this.addUniteCard(child, []);
             });
             section.appendChild(p);
         }
@@ -341,7 +342,8 @@ export default class {
             <strong>${unite.name}</strong>
         </div>
         <div class="entity-contact" title="Mail: ${unite.mail}&#10;Téléphone: ${unite.tph}">
-            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${unite.mail}</div>
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;
+                <a href="mailto:${unite.mail}">${unite.mail}</a></div>
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${unite.tph}</div>
         </div>
         <div class="entity-other">
@@ -396,7 +398,7 @@ export default class {
             <div class="entity-unit display-unite">${user.unite} (${user.code_unite})</div>
         </div>
         <div class="entity-contact" title="Mail: ${user.mail}&#10;Téléphone: ${user.tph}&#10;Portable: ${user.port}&#10;Qualification: ${user.qualification}&#10;Spécificité: ${user.specificite}">
-            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;${user.mail}</div>
+            <div class="entity-attribute display-mail"><span class="entity-contact-icon">📧</span>&nbsp;<a href="mailto:${user.mail}">${user.mail}</a></div>
             <div class="entity-attribute display-numero-fixe"><span class="entity-contact-icon">📞</span>&nbsp;${user.tph}</div>
             <div class="entity-attribute display-numero-port"><span class="entity-contact-icon">📱</span>&nbsp;${user.port}</div>
         </div>
@@ -483,30 +485,19 @@ export default class {
 function table_template(users: User[]): HTMLTableElement {
 
     const fonctions = {
-        'C': {
-            short: "CDU",
-            long: "Commandant d'unité"
-        },
-        'A': {
-            short: "2nd",
-            long: "Commandant d'unité en second"
-        },
-        'S': {
-            short: "2nd",
-            long: "Second"
-        }
-    },
-        getFn = (user: User) => ({
-            short: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].short : "",
-            long: fonctions.hasOwnProperty(user.fonction) ? fonctions[user.fonction as ('C' | 'A' | 'S')].long : ""
-        });
+        'C': "Commandant d'unité",
+        'A': "Commandant d'unité en second",
+        'S': "Second"
+    };
 
     const table = document.createElement('table');
     const thead = document.createElement('thead');
     const tr = document.createElement('tr');
-    ['Fonction', 'Grade', 'Nom Prénom', 'Spéc.', 'Tph fixe', 'Néo', 'Mail'].map(term => {
+    ['Grade', 'Nom Prénom', 'Spéc.', 'Tph fixe', 'Néo', 'Mail'].map(term => {
         const th = document.createElement('th');
         th.setAttribute('scope', 'col');
+        if (['Spéc.', 'Tph fixe', 'Néo'].includes(term))
+            th.classList.add('on-compact-hide');
         th.textContent = term;
         if (term === 'Spéc.')
             th.setAttribute('title', 'Spécificité');
@@ -518,13 +509,18 @@ function table_template(users: User[]): HTMLTableElement {
     const tbody = document.createElement('tbody');
     users.map(user => {
         const tr = document.createElement('tr');
-        const td0 = document.createElement('td');
-        td0.setAttribute('title', getFn(user).long);
-        td0.textContent = getFn(user).short;
-        tr.appendChild(td0);
 
         const td1 = document.createElement('td');
-        td1.textContent = user.grade;
+        td1.innerHTML = ['C', 'A', 'S'].includes(user.fonction) ?
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M341.5 45.1C337.4 37.1 329.1 32 320.1 32C311.1 32 302.8 37.1 298.7 45.1L225.1 189.3L65.2 214.7C56.3 216.1 48.9 222.4 46.1 231C43.3 239.6 45.6 249 51.9 255.4L166.3 369.9L141.1 529.8C139.7 538.7 143.4 547.7 150.7 553C158 558.3 167.6 559.1 175.7 555L320.1 481.6L464.4 555C472.4 559.1 482.1 558.3 489.4 553C496.7 547.7 500.4 538.8 499 529.8L473.7 369.9L588.1 255.4C594.5 249 596.7 239.6 593.9 231C591.1 222.4 583.8 216.1 574.8 214.7L415 189.3L341.5 45.1z"/></svg>' : '';
+        td1.innerHTML += user.grade;
+        if (user.fonction === 'C') {
+            td1.classList.add('gold');
+            td1.setAttribute('title', fonctions[user.fonction as 'C'])
+        } else if (['A', 'S'].includes(user.fonction)) {
+            td1.classList.add('silver');
+            td1.setAttribute('title', fonctions[user.fonction as 'C' | 'A']);
+        }
         tr.appendChild(td1);
 
         const td2 = document.createElement('td');
@@ -533,19 +529,25 @@ function table_template(users: User[]): HTMLTableElement {
 
         const td3 = document.createElement('td');
         td3.textContent = user.qualification + (user.specificite != "" ? " " + user.specificite : "");
+        td3.classList.add('on-compact-hide');
         tr.appendChild(td3);
 
         const td4 = document.createElement('td');
         td4.textContent = user.tph.replace(/\s/g, '.');
+        td4.classList.add('on-compact-hide');
         tr.appendChild(td4);
 
         const td5 = document.createElement('td');
         td5.textContent = user.port.replace(/\s/g, '.');
+        td5.classList.add('on-compact-hide');
         tr.appendChild(td5);
 
         const td6 = document.createElement('td');
+        const a = document.createElement('a');
+        a.setAttribute('href', `mailto:${user.mail}`);
+        a.innerHTML = '<span class="entity-contact-icon">📧</span>&nbsp;' + user.mail.replace(/@gend.*$/, '');
+        td6.appendChild(a);
         td6.setAttribute('title', user.mail);
-        td6.textContent = user.mail.replace(/@gend.*$/, '@gend...');
         tr.appendChild(td6);
 
         tbody.appendChild(tr);

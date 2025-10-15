@@ -21,7 +21,7 @@ class ApiController extends AbstractController
     ];
 
     private $liste_terms = [
-        'tous' => ['liste', 'list', 'tableau', 'table', 'personnels'],
+        'tous' => ['liste', 'list', 'tableau', 'table', 'personnels', 'pax'],
         'statut' => ['militaires', 'militaire', 'mili', 'civils', 'civil'],
         'qualification' => ['opj', 'apj', 'apja']
     ];

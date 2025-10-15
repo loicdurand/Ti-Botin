@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!target)
       return;
 
+    console.log(target);
+
     if (target.matches('#liste-personnels-bubble .column-radios input')) {
 
       handleListePersonnelsAffinerUniteClick(target as HTMLInputElement);
@@ -35,6 +37,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const bubble = getParent(target, '.bubble') as HTMLElement;
       const entity_card = bubble.querySelector('.entity-card') as HTMLElement;
       entity_card.classList.toggle('expanded');
+    } else if (target.matches('#map')) {
+      document.getElementById('bubble-container')?.classList.remove('big');
     }
   })
 
