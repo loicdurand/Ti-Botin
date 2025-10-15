@@ -1,5 +1,4 @@
-import { normalizeAccents, pluralize } from '../utils/str';
-import { serialize } from '../utils/obj';
+import { normalizeAccents, pluralize, truncate } from '../utils/str';
 
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
@@ -416,7 +415,7 @@ export default class {
         <div class="entity-card ${cardCls.join(' ')}" data-id="${user.id}">
         <div class="entity-header">
             <span class="entity-grade" title="${user.grade_long}">${user.grade}</span>&nbsp;
-            <strong>${user.prenom} ${user.nom}</strong>
+            <strong>${user.prenom} ${user.nom}</strong>&nbsp;(${user.nigend})
         </div>
         <div class="entity-details">
             ${['C', 'A'].includes(user.fonction) ?
@@ -551,7 +550,8 @@ async function table_template(users: User[]): Promise<HTMLTableElement> {
         tr.appendChild(td1);
 
         const td2 = document.createElement('td');
-        td2.textContent = user.prenom + ' ' + user.nom;
+        td2.setAttribute('title', user.prenom + ' ' + user.nom + ' (' + user.nigend + ')');
+        td2.textContent = truncate(user.prenom + ' ' + user.nom, 24) + ' (' + user.nigend + ')';
         tr.appendChild(td2);
 
         const td3 = document.createElement('td');

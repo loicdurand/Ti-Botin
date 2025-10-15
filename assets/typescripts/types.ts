@@ -43,6 +43,7 @@ export type User = {
     grade: string,
     grade_long: string,
     id: string,
+    nigend: number,
     mail: string,
     nom: string,
     port: string,
