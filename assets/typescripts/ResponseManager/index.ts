@@ -1,8 +1,9 @@
 import { normalizeAccents, pluralize } from '../utils/str';
+import { serialize } from '../utils/obj';
+
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 import { AnalysisResult, Unite, User } from '../types';
-import { spawn } from 'child_process';
 
 // let index = 0;
 
@@ -174,7 +175,7 @@ export default class {
         }
     }
 
-    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult) {
+    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult, url: string) {
         this.bubble.classList.remove('loading');
         this.bubble.id = "liste-personnels-bubble";
         const nb_unites = data.length;
@@ -256,6 +257,19 @@ export default class {
             const tree = await this.renderTreeToHTML(unite, false);
             this.bubble.appendChild(tree);
 
+            // Si la demande était d'exporter uneliste, on ajoute un lien de téléchargement
+            if (analyzed?.action?.length) {
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'export_liste.pdf');
+                a.textContent = " télécharger cette liste au format PDF";
+                this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
+                await this.typeMessage(this.bubble, "Comme vous l'avez demandé, voici le lien pour");
+                this.bubble.querySelector('.text')?.appendChild(a);
+
+            }
+
         }
     }
 
@@ -283,7 +297,8 @@ export default class {
             section.appendChild(table);
             if (!with_title) {
                 const span = document.createElement('span');
-                span.classList.add('text');
+                span.classList.add('visible');
+                span.innerHTML = "Ci-dessous, je présente le résultat de la recherche pour les unités filles&nbsp;&darr;"
                 section.appendChild(span);
             }
 
@@ -309,13 +324,6 @@ export default class {
 
             section.appendChild(p);
         }
-
-        this.typeMessage(section, "Ci-dessous, je présente le résultat de la recherche pour les unités filles", () => {
-            this.bubble.querySelector('.text')?.classList.remove('text');
-            const text = section.querySelector('table + span.visible');
-            if (text)
-                text.innerHTML += "&nbsp;&darr;"
-        });
 
         return section;
     }

@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!target)
       return;
 
-    console.log(target);
-
     if (target.matches('#liste-personnels-bubble .column-radios input')) {
 
       handleListePersonnelsAffinerUniteClick(target as HTMLInputElement);
@@ -101,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const fonction_terms = Object.keys(chat_data.commandement_terms).map(key => chat_data.commandement_terms[key]).flat();
   const liste_terms = Object.keys(chat_data.liste_terms).map(key => chat_data.liste_terms[key]).flat();
+  const liste_actions = chat_data.liste_actions;
 
   const chat = new Chat()
     .addWords(chat_data.communes, 'City')
@@ -114,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     .addWords(chat_data.prenoms.map(normalizeAccents), 'FirstName')
     .addWords(chat_data.noms.map(normalizeAccents), 'Name')
     .addWords(liste_terms, 'Liste')
+    .addWords(liste_actions, 'Action')
     .addAliasses(chat_data.communes_alias, "City")
     .addAliasses(orgAliasses, 'Organization');
 
@@ -220,11 +220,11 @@ async function getListeOf(analyzed: AnalysisResult, responsemanager: ResponseMan
     return false;
 
   let json = await res.json();
-  const { data, words } = json;
+  const { data, words, url } = json;
 
   console.log({ data });
 
-  responsemanager.printListeMessage(data, words, analyzed);
+  responsemanager.printListeMessage(data, words, analyzed, url);
 }
 
 function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement {

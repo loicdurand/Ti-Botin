@@ -1,5 +1,5 @@
 export type Words = { [key: string]: string }
-export type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name' | 'Fonction' | 'Liste';
+export type Category = 'Organization' | 'City' | 'Attribute' | 'FirstName' | 'Name' | 'Fonction' | 'Liste' | 'Action';
 
 export type AnalysisResult = {
     type: 'unite' | 'person' | 'number' | 'unknown';
@@ -8,6 +8,7 @@ export type AnalysisResult = {
     number: string | null;
     attributes: string[];
     liste: string | null;
+    action: string | null;
 }
 
 export type Point = {

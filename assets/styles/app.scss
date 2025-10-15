@@ -2,6 +2,10 @@
 @use './sidebar.scss';
 @use './bubble-container.scss';
 
+:root {
+    --link-color: #007bff;
+}
+
 @keyframes gradientFlow {
     0% {
         background-position: 0% 50%;
@@ -43,6 +47,10 @@ body {
 h3,
 h4 {
     font-weight: initial;
+}
+
+[href] {
+    color: var(--link-color) !important;
 }
 
 #carte-container {
