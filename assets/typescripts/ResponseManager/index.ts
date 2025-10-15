@@ -1,8 +1,8 @@
-import { normalizeAccents, pluralize } from '../utils/str';
+import { normalizeAccents, pluralize, truncate } from '../utils/str';
+
 import * as terms from '../lexic';
 import ReponseGenerator from './ReponseGenerator';
 import { AnalysisResult, Unite, User } from '../types';
-import { spawn } from 'child_process';
 
 // let index = 0;
 
@@ -174,7 +174,7 @@ export default class {
         }
     }
 
-    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult) {
+    public async printListeMessage(data: Unite[], words: { [K in 'statut' | 'qualification']: string[] }, analyzed: AnalysisResult, url: string) {
         this.bubble.classList.remove('loading');
         this.bubble.id = "liste-personnels-bubble";
         const nb_unites = data.length;
@@ -256,6 +256,19 @@ export default class {
             const tree = await this.renderTreeToHTML(unite, false);
             this.bubble.appendChild(tree);
 
+            // Si la demande était d'exporter uneliste, on ajoute un lien de téléchargement
+            if (analyzed?.action?.length) {
+                this.bubble.querySelector('.text')?.classList.remove('text');
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'export_liste.pdf');
+                a.textContent = " télécharger cette liste au format PDF";
+                this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
+                await this.typeMessage(this.bubble, "Comme vous l'avez demandé, voici le lien pour");
+                this.bubble.querySelector('.text')?.appendChild(a);
+
+            }
+
         }
     }
 
@@ -283,7 +296,8 @@ export default class {
             section.appendChild(table);
             if (!with_title) {
                 const span = document.createElement('span');
-                span.classList.add('text');
+                span.classList.add('visible');
+                span.innerHTML = "Ci-dessous, je présente le résultat de la recherche pour les unités filles&nbsp;&darr;"
                 section.appendChild(span);
             }
 
@@ -309,13 +323,6 @@ export default class {
 
             section.appendChild(p);
         }
-
-        this.typeMessage(section, "Ci-dessous, je présente le résultat de la recherche pour les unités filles", () => {
-            this.bubble.querySelector('.text')?.classList.remove('text');
-            const text = section.querySelector('table + span.visible');
-            if (text)
-                text.innerHTML += "&nbsp;&darr;"
-        });
 
         return section;
     }
@@ -408,7 +415,7 @@ export default class {
         <div class="entity-card ${cardCls.join(' ')}" data-id="${user.id}">
         <div class="entity-header">
             <span class="entity-grade" title="${user.grade_long}">${user.grade}</span>&nbsp;
-            <strong>${user.prenom} ${user.nom}</strong>
+            <strong>${user.prenom} ${user.nom}</strong>&nbsp;(${user.nigend})
         </div>
         <div class="entity-details">
             ${['C', 'A'].includes(user.fonction) ?
@@ -543,7 +550,8 @@ async function table_template(users: User[]): Promise<HTMLTableElement> {
         tr.appendChild(td1);
 
         const td2 = document.createElement('td');
-        td2.textContent = user.prenom + ' ' + user.nom;
+        td2.setAttribute('title', user.prenom + ' ' + user.nom + ' (' + user.nigend + ')');
+        td2.textContent = truncate(user.prenom + ' ' + user.nom, 24) + ' (' + user.nigend + ')';
         tr.appendChild(td2);
 
         const td3 = document.createElement('td');

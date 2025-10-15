@@ -54,7 +54,7 @@ class UserRepository extends ServiceEntityRepository
         $nom = count($split) > 1 ? $split[1] : null;
 
         $query = $this->createQueryBuilder('u')
-            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.nigend, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
             ->innerJoin('u.unite', 'un');
         if ($prenom !== '#') {
             $query
@@ -79,7 +79,7 @@ class UserRepository extends ServiceEntityRepository
         return $persons;
     }
 
-    public function findByPhone($numeroNettoye)
+    public function findByPhoneOrNigend($numeroNettoye)
     {
         $sql = "
             SELECT 
@@ -92,7 +92,7 @@ class UserRepository extends ServiceEntityRepository
                 WHEN REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe THEN 'port'
                 ELSE 'other'
             END AS found_column,
-            un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statut_corps, u.tph, u.port, u.mail, u.qualification 
+            un.code as code_unite, un.name as unite, u.id, u.nigend, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statut_corps, u.tph, u.port, u.mail, u.qualification 
             FROM user u
             INNER JOIN unite un ON u.unite_id = un.id 
             WHERE (
@@ -101,9 +101,10 @@ class UserRepository extends ServiceEntityRepository
                 REPLACE(REPLACE(u.tph, ' ', ''), '+', '') != REPLACE(REPLACE(un.telephone_number, ' ', ''), '+', '')
             )
             OR REPLACE(REPLACE(u.port, ' ', ''), '+', '') LIKE :suffixe
+            OR nigend = :nigend
         ";
 
-        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye"]); // . $numeroNettoye]);
+        $resultSet = $this->connection->executeQuery($sql, ['suffixe' => "%$numeroNettoye", 'nigend' => $numeroNettoye]); // . $numeroNettoye]);
 
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
@@ -114,7 +115,7 @@ class UserRepository extends ServiceEntityRepository
         $c1 = in_array("cdu", $cdt_words);
 
         $query = $this->createQueryBuilder('u')
-            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.nigend, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
             ->innerJoin('u.unite', 'un')
             ->innerJoin('un.adresse', 'adr')
             ->andWhere("un.name LIKE :term AND u.fonction = :fonction")
@@ -144,7 +145,7 @@ class UserRepository extends ServiceEntityRepository
          */
 
         $query = $this->createQueryBuilder('u')
-            ->select('un.code as code_unite, un.name as unite, u.id, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
+            ->select('un.code as code_unite, un.name as unite, u.id, u.nigend, u.fonction, u.grade, u.prenom, u.nom, u.specificite, u.qualification, u.grade_long, u.statutCorps as statut_corps, u.tph, u.port, u.mail, u.qualification')
             ->innerJoin('u.unite', 'un')
             ->andWhere("un.code = :code")
             ->setParameter('code', $code_unite);

@@ -12,6 +12,10 @@ use App\Entity\User;
 use App\Entity\Unite;
 use App\Entity\Adresse;
 
+// Include Dompdf required namespaces
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 class ApiController extends AbstractController
 {
 
@@ -26,6 +30,8 @@ class ApiController extends AbstractController
         'qualification' => ['opj', 'apj', 'apja']
     ];
 
+    private $liste_actions = ['export', 'exporter', 'exporte', 'telech', 'telecharge', 'telecharges', 'telecharger', 'download', 'dl', 'pdf'];
+
     private $liste_eq = [
         'militaire' => ['militaires', 'militaire', 'mili'],
         'civil' => ['civils', 'civil']
@@ -38,6 +44,8 @@ class ApiController extends AbstractController
         $adresses = $manager->getRepository(Adresse::class)->findAll();
         foreach ($adresses as $adr) {
             $unites = $adr->getUnites();
+            if (count($unites) === 0)
+                continue;
             $output[] = [
                 'id' => $adr->getId(),
                 'lat' => $adr->getLat(),
@@ -68,8 +76,8 @@ class ApiController extends AbstractController
             'communes' => $adrRepo->getDistinctCommunes(),
             'communes_alias'  => $adrRepo->getCommunesAlias(),
             'commandement_terms' => $this->commandement_terms,
-            'liste_terms' => $this->liste_terms
-
+            'liste_terms' => $this->liste_terms,
+            'liste_actions' => $this->liste_actions
         ];
         // dd($results['communes_alias']);
         return $this->json($results);
@@ -136,7 +144,7 @@ class ApiController extends AbstractController
             $output[] = [
                 // 'person' => $manager->getRepository(User::class)->findByPhoneOrNigend($formatted_number, intval($cleaned_number)),
                 'type' => 'person',
-                'data' => $manager->getRepository(User::class)->findByPhone($numeroNettoye)
+                'data' => $manager->getRepository(User::class)->findByPhoneOrNigend($numeroNettoye)
             ];
             return $this->json($output);
         } catch (\Throwable $th) {
@@ -146,60 +154,72 @@ class ApiController extends AbstractController
         }
     }
 
+
     #[Route('/api/get-list-of', name: 'export_api_getlistof')]
     public function api_getlistof(Request $request, EntityManagerInterface $manager): Response
     {
         $data = $request->query->get('q') ?? $request->request->get('q');
         // try {
         $data = json_decode($data);
+        // dd($data);
         $type = $data->type ?? $data->type;
         $term = $data->term ?? $data->term;
         $city = $data->city ?? $data->city;
         $liste = $data->liste ?? $data->liste;
-        $liste = explode(' ', $data->liste); // Ex: ['liste', 'personnels', 'opj']
 
-        $liste_words = [];
-        foreach ($this->liste_terms as $type => $words) {
-            foreach ($words as $word) {
-                if (in_array($word,  $liste)) {
+        $data = [
+            'type' => $type,
+            'term' => $term,
+            'city' => is_null($city) ? 'X' : $city,
+            'liste' => $liste
+        ];
+        $res = $this->getlist($data, true,  $manager);
+        $res['url'] = $this->generateUrl('export_api_pdf', $data);
+        return $this->json($res);
+    }
 
-                    if (!array_key_exists($type, $liste_words))
-                        $liste_words[$type] = [];
+    #[Route('/api/pdf/{type}/{term}/{city}/{liste}', name: 'export_api_pdf')]
+    public function api_pdf(EntityManagerInterface $manager, string $type, string $term, string $city, string $liste)
+    {
+        $data = [
+            'type' => $type,
+            'term' => $term,
+            'city' => $city,
+            'liste' => $liste
+        ];
 
-                    if ($type === 'statut')
-                        $liste_words[$type][] = in_array($word, $this->liste_eq['militaire']) ? 'militaire' : 'civil';
-                    else if ($type === 'qualification')
-                        $liste_words[$type][] = $word;
-                }
-            }
-        }
+        $liste = $this->getlist($data, false,  $manager);
+        $unites = $liste['data'];
+        $interface = "pdf";
 
-        // dd($liste_words); 
-        $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+        // Configure Dompdf according to your needs
+        $pdfOptions = new Options();
+        $pdfOptions->set('isRemoteEnabled', true);
+        $pdfOptions->set('defaultFont', 'Arial');
 
-        $j = 0;
-        foreach ($unites as $i => $unite) {
-            $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
-            // Si la recherche utilisateur était suffisemment précise pour ne ramener qu'une unité
-            // On ajoute les unités filles s'il y en a.
-            if (count($unites) === 1) {
-                $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
-                foreach ($unites_sub as $j => $unite_sub) {
-                    $unites_sub[$j]['users'] = $manager->getRepository(User::class)->findListeOf($unite_sub['code'], $liste_words);
-                }
-                $unites = $this->buildTree([$unites[$i], ...$unites_sub], $unite['uid']);
-            }
-        }
+        // Instantiate Dompdf with our options
+        $dompdf = new Dompdf($pdfOptions);
 
-        return $this->json([
-            'words' => $liste_words,
-            'data' => $unites
+        // Retrieve the HTML generated in our twig file
+        $html = $this->renderView('index/pdf.html.twig', [
+            'interface' => $interface,
+            'title' => "Export " . $unites[0]['name'],
+            'unites' => $unites
         ]);
-        // } catch (\Throwable $th) {
-        //     return $this->json([
-        //         'error' => $th
-        //     ]);
-        // }
+
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+
+        // (Optional) Setup the paper size and orientation 'portrait' or 'landscape'
+        $dompdf->setPaper('A4', 'landscape');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser (inline view)
+        $dompdf->stream("Annuaire COMGENDGP.pdf", [
+            "Attachment" => true
+        ]);
     }
 
     private function nettoyerTelephone($telephone)
@@ -232,5 +252,60 @@ class ApiController extends AbstractController
         }
 
         return $roots;
+    }
+
+    private function getlist($data, bool $render_as_tree = true, EntityManagerInterface $manager): array
+    {
+
+
+        $type = $data['type'];
+        $term = $data['term'];
+        $city = $data['city'];
+        $liste = $data['liste'];
+        $liste = explode(' ', $liste); // Ex: ['liste', 'personnels', 'opj']
+
+        $liste_words = [];
+        foreach ($this->liste_terms as $type => $words) {
+            foreach ($words as $word) {
+                if (in_array($word,  $liste)) {
+
+                    if (!array_key_exists($type, $liste_words))
+                        $liste_words[$type] = [];
+
+                    if ($type === 'statut')
+                        $liste_words[$type][] = in_array($word, $this->liste_eq['militaire']) ? 'militaire' : 'civil';
+                    else if ($type === 'qualification')
+                        $liste_words[$type][] = $word;
+                }
+            }
+        }
+
+        if ($city === 'X')
+            $city = null;
+        $unites = $manager->getRepository(Unite::class)->findByIdentifier($term, $city);
+
+        $j = 0;
+        foreach ($unites as $i => $unite) {
+            $unites[$i]['users'] = $manager->getRepository(User::class)->findListeOf($unite['code'], $liste_words);
+            // Si la recherche utilisateur était suffisemment précise pour ne ramener qu'une unité
+            // On ajoute les unités filles s'il y en a.
+            if (count($unites) === 1) {
+                $unites_sub = $manager->getRepository(Unite::class)->findByParent($unite['uid']);
+                foreach ($unites_sub as $j => $unite_sub) {
+                    $unites_sub[$j]['users'] = $manager->getRepository(User::class)->findListeOf($unite_sub['code'], $liste_words);
+                }
+                $unites = $render_as_tree ? $this->buildTree([$unites[$i], ...$unites_sub], $unite['uid']) : [$unites[$i], ...$unites_sub];
+            }
+        }
+
+        return [
+            'words' => $liste_words,
+            'data' => $unites
+        ];
+        // } catch (\Throwable $th) {
+        //     return [
+        //         'error' => $th
+        //     ];
+        // }
     }
 }

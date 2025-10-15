@@ -24,3 +24,12 @@ export function buildTree(objs: any[], id_field: string = 'id', parent_field: st
 
     return roots.length ? roots : objs;
 }
+
+export function serialize(obj: any) {
+    var str = [];
+    for (var p in obj)
+        if (obj.hasOwnProperty(p)) {
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+        }
+    return str.join("&");
+}
