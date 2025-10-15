@@ -107,6 +107,27 @@ h4 {
     min-height: 8vh;
     max-height: 8vh;
     background-color: var(--grey-9);
+
+    & img {
+        position: absolute;
+        bottom: -8px;
+        left: 8px;
+        height: 8vh;
+        min-width: 8vh;
+        max-width: 8vh;
+    }
+
+    &:after {
+        content: "\0000A9 \0000A0 SOLC Saint-Claude / DSOLC Baie-Mahault";
+        color: #dedede;
+        display: block;
+        width: 100%;
+        height: 100px;
+        position: absolute;
+        left: 10vh;
+        bottom: -9vh;
+        font-size: 14px;
+    }
 }
 
 #prompt-input {
