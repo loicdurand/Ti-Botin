@@ -35,7 +35,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } else if (target.matches('.entity-card *')) {
       const entity_card = getParent(target, '.entity-card') as HTMLElement;// bubble.querySelector('.entity-card') as HTMLElement;
-      entity_card.classList.toggle('expanded');
+      if (target.matches('section section + .entity-card *')) {
+        const ctnr = document.getElementById('bubble-container');
+        ctnr?.classList.add('big');
+      } else {
+        entity_card.classList.toggle('expanded');
+      }
     } else if (target.matches('#map')) {
       document.getElementById('bubble-container')?.classList.remove('big');
     }
