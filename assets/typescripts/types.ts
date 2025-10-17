@@ -9,6 +9,7 @@ export type AnalysisResult = {
     attributes: string[];
     liste: string | null;
     action: string | null;
+    use_context?: boolean
 }
 
 export type Point = {

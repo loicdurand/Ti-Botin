@@ -250,6 +250,12 @@ export default class {
             const unite_card = await this.addUniteCard(unite, []);
             this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
 
+            if (analyzed.use_context) {
+                // const unite_card = await this.addUniteCard(unite, []);
+                this.addPDFLink(url, '');
+                return void (0);
+            }
+
             await this.typeMessage(this.bubble, this.responder.list_users_intro);
             this.bubble.querySelector('.text')?.classList.remove('text');
             document.getElementById('bubble-container')?.classList.add('big');
@@ -258,18 +264,20 @@ export default class {
 
             // Si la demande était d'exporter uneliste, on ajoute un lien de téléchargement
             if (analyzed?.action?.length) {
-                this.bubble.querySelector('.text')?.classList.remove('text');
-                const a = document.createElement('a');
-                a.setAttribute('href', url);
-                a.setAttribute('download', 'export_liste.pdf');
-                a.textContent = " télécharger cette liste au format PDF";
-                this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
-                await this.typeMessage(this.bubble, "Comme vous l'avez demandé, voici le lien pour");
-                this.bubble.querySelector('.text')?.appendChild(a);
-
+                this.addPDFLink(url, unite_card);
             }
-
         }
+    }
+
+    public async addPDFLink(url: string, unite_card: string) {
+        this.bubble.querySelector('.text')?.classList.remove('text');
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'export_liste.pdf');
+        a.textContent = " télécharger cette liste au format PDF";
+        this.bubble.innerHTML += unite_card + '<br/><span class="text"></span>';
+        await this.typeMessage(this.bubble, "Comme vous l'avez demandé, voici le lien pour");
+        this.bubble.querySelector('.text')?.appendChild(a);
     }
 
     public printUnknownMessage(): this {
@@ -294,7 +302,7 @@ export default class {
         if (unite?.users?.length) {
             const table = await table_template(unite.users as User[]);
             section.appendChild(table);
-            if (!with_title) {
+            if (!with_title && unite.children && unite.children.length > 0) {
                 const span = document.createElement('span');
                 span.classList.add('visible');
                 span.innerHTML = "Ci-dessous, je présente le résultat de la recherche pour les unités filles&nbsp;&darr;"

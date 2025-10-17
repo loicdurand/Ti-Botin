@@ -17,7 +17,7 @@ export default class Chat {
     private words: Words = {};
     private nlp = nlp;
 
-    private context: User | Unite | null = null;
+    private context: User | Unite | AnalysisResult | null = null;
 
     constructor() {
         return this;
@@ -27,7 +27,7 @@ export default class Chat {
         return this.context;
     }
 
-    public setContext(context: User | Unite) {
+    public setContext(context: User | Unite | AnalysisResult) {
         this.context = context;
         return this;
     }
@@ -95,6 +95,7 @@ export default class Chat {
             action = actions.join(' ');
         } else {
             type = 'unknown';
+            action = actions.join(' ');
         }
 
         return {

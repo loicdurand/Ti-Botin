@@ -132,17 +132,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       const responsemanager = new ResponseManager(addBubbleToTUI);
       responsemanager.addLoader();
 
-      const analyzed: AnalysisResult = chat.analyzeMessage(message);
-      if (analyzed.type == "unknown" && chat?.getContext()?.hasOwnProperty('name')) {
-        analyzed.type = 'unite';
-        analyzed.term = (chat?.getContext() as Unite)?.name
+      let analyzed: AnalysisResult = chat.analyzeMessage(message);
+      if (analyzed.type == "unknown") {
+        if (chat?.getContext()?.hasOwnProperty('name')) {
+          analyzed.type = 'unite';
+          analyzed.term = (chat?.getContext() as Unite)?.name
+        } else if (chat?.getContext()?.hasOwnProperty('liste')) {
+          analyzed = { ...analyzed, ...chat.getContext(), action: analyzed.action, use_context: true };
+        }
       }
       console.log(analyzed);
 
       // Si la demande concerne une liste de personnels,
       // on traite ça dans une autre fonction "getListeOf"
-      if (analyzed.liste)
+      if (analyzed.liste) {
+        chat.setContext(analyzed);
         return getListeOf(analyzed, responsemanager);
+      }
 
       // Fetch recherche API
       const fetch_url = analyzed.type === 'number' ? '/export/api/find-by-number' : '/export/api/search';
