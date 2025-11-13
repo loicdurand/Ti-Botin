@@ -115,6 +115,7 @@ h4 {
         height: 8vh;
         min-width: 8vh;
         max-width: 8vh;
+        cursor: pointer;
     }
 
     &:after {
@@ -224,5 +225,31 @@ h4 {
     #prompt-input {
         margin-left: 75%;
         width: 25%;
+    }
+}
+
+@media all and (max-width: 521px) {
+    .main-content {
+        width: 0 !important;
+    }
+
+    #bubble-container {
+        width: 100% !important;
+    }
+
+    footer.prompt-bar {
+        img {
+            display: none;
+        }
+
+        #prompt-input{
+            margin-left: 0;
+        }
+
+        &:after {
+            font-size: 12px;
+            bottom: calc(-9vh + -7px);
+            left: 12px;
+        }
     }
 }

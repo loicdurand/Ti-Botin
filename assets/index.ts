@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } else if (target.matches('#map')) {
       document.getElementById('bubble-container')?.classList.remove('big');
+    }else if(target.matches('footer.prompt-bar img')){
+      openSmallWindow();
     }
   })
 
@@ -252,4 +254,15 @@ function addBubbleToTUI(sens: 'sent' | 'received' | 'input-bubble'): HTMLElement
   bubbleCtnr?.appendChild(bubble);
   return bubble;
 
+}
+
+function openSmallWindow() {
+
+  const url = window.location.href;
+  const features = 'popup,width=520,height=994,right=0,top=100,toolbar=no,menubar=no,scrollbars=no,status=no';
+  const smallWindow = window.open(url, 'smallWindow', features);
+
+  if (!smallWindow) {
+    alert('La fenêtre a été bloquée par le navigateur. Vérifiez vos paramètres de pop-ups.');
+  }
 }
